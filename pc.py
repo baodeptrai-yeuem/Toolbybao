@@ -92,15 +92,6 @@ def display_menu(available_modes):
     print(f"{Fore.LIGHTCYAN_EX}└─────────────────────────────────────────────────┘{Style.RESET_ALL}")
     print(f"{Fore.WHITE}│ Nhập số chế độ: {Style.RESET_ALL}", end="")
 
-def display_stats(bot):
-    """Hiển thị thống kê dưới dạng bảng."""
-    print(f"{Fore.LIGHTMAGENTA_EX}┌────────────────── Thống Kê ─────────────────────┐{Style.RESET_ALL}")
-    print(f"{Fore.WHITE}│ Lượt Xem:      {bot.views:<30} │{Style.RESET_ALL}")
-    print(f"{Fore.WHITE}│ Lượt Thích:    {bot.hearts:<30} │{Style.RESET_ALL}")
-    print(f"{Fore.WHITE}│ Lượt Chia Sẻ:  {bot.shares:<30} │{Style.RESET_ALL}")
-    print(f"{Fore.WHITE}│ Lượt Yêu Thích:{bot.favorites:<30} │{Style.RESET_ALL}")
-    print(f"{Fore.LIGHTMAGENTA_EX}└─────────────────────────────────────────────────┘{Style.RESET_ALL}")
-
 class Bot:
     def __init__(self):
         self.driver = None
@@ -278,7 +269,7 @@ class Bot:
             elapsed = time.time() - self.start_time
             remaining = int(wait_seconds - (time.time() - start_wait))
             future_time = format_time(elapsed + remaining)
-            print(f"\r{Fore.LIGHTCYAN_EX}Thời gian chạy: {format_time(elapsed)} | Chờ: {Fore.WHITE}{remaining}s (đến {future_time}){Style.RESET_ALL}", end='')
+            print(f"\r{Fore.LIGHTCYAN_EX}Thời gian chạy: {format_time(elapsed)} | Chờ: {Fore.WHITE}{remaining}s (đến {future_time})){Style.RESET_ALL}", end='')
             time.sleep(1)
         print()
 
@@ -299,6 +290,21 @@ class Bot:
             self.favorites += increment
             return increment
         return 0
+
+    def display_total(self, mode):
+        """Hiển thị tổng số của chức năng hiện tại."""
+        mode_vn = {"Hearts": "Lượt Thích", "Views": "Lượt Xem", "Shares": "Lượt Chia Sẻ", "Favorites": "Lượt Yêu Thích", "Live Stream": "Live Stream"}.get(mode, mode)
+        if mode == "Views":
+            total = self.views
+        elif mode == "Hearts":
+            total = self.hearts
+        elif mode == "Shares":
+            total = self.shares
+        elif mode == "Favorites":
+            total = self.favorites
+        else:
+            total = 0
+        log_message(f"Tổng số {mode_vn}: {total}", Fore.LIGHTMAGENTA_EX)
 
     def loop(self, vidUrl, mode, amount):
         data = {
@@ -389,7 +395,7 @@ class Bot:
                 self.success_count += 1
                 mode_vn = {"Hearts": "Lượt Thích", "Views": "Lượt Xem", "Shares": "Lượt Chia Sẻ", "Favorites": "Lượt Yêu Thích", "Live Stream": "Live Stream"}.get(mode, mode)
                 log_message(f"Thành công: Đã thêm {increment} {mode_vn}!", Fore.LIGHTGREEN_EX)
-                display_stats(self)  # Hiển thị thống kê dưới dạng bảng
+                self.display_total(mode)  # Hiển thị tổng số của chức năng hiện tại
 
                 # Kiểm tra nếu đã gửi 5 lần thành công
                 if self.success_count >= 5:
