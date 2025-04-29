@@ -19,9 +19,10 @@ from colorama import init, Fore, Style
 # Khởi tạo colorama
 init(autoreset=True)
 
-# Tắt log của Selenium và ChromeDriver
+# Tắt log của Selenium, ChromeDriver và urllib3
 logging.getLogger('selenium').setLevel(logging.CRITICAL)
 logging.getLogger('webdriver').setLevel(logging.CRITICAL)
+logging.getLogger('urllib3').setLevel(logging.CRITICAL)
 
 # Hàm tiện ích
 def clear_screen():
@@ -38,32 +39,10 @@ def loading_animation(message, duration=2):
     end_time = time.time() + duration
     i = 0
     while time.time() < end_time:
-        print(f"\r{Fore.YELLOW}{frames[i % len(frames)]} {message}{Style.RESET_ALL}", end="")
+        print(f"\r{Fore.LIGHTYELLOW_EX}{frames[i % len(frames)]} {message}{Style.RESET_ALL}", end="")
         i += 1
         time.sleep(0.1)
     print()
-
-def image_to_ascii(image_path, width=80):
-    """Chuyển đổi hình ảnh thành nghệ thuật ASCII có màu."""
-    img = Image.open(image_path).convert('L')
-    aspect_ratio = img.height / img.width
-    new_height = int(aspect_ratio * width * 0.55)
-    img = img.resize((width, new_height))
-    ascii_chars = '@%#*+=-:. '
-    pixels = img.getdata()
-    ascii_str = ''
-    for i, pixel in enumerate(pixels):
-        char_index = int(pixel / 255 * (len(ascii_chars) - 1))
-        char = ascii_chars[char_index]
-        if pixel > 200:
-            ascii_str += Fore.YELLOW + char + Style.RESET_ALL
-        elif pixel > 100:
-            ascii_str += Fore.WHITE + char + Style.RESET_ALL
-        else:
-            ascii_str += Fore.LIGHTBLACK_EX + char + Style.RESET_ALL
-        if (i + 1) % width == 0:
-            ascii_str += '\n'
-    return ascii_str
 
 def open_image_in_termux(file_path):
     """Mở hình ảnh trong Termux bằng termux-open."""
@@ -73,8 +52,8 @@ def open_image_in_termux(file_path):
             return False
         result = subprocess.run(["termux-open", file_path], capture_output=True, text=True)
         if result.returncode == 0:
-            log_message("Đã mở hình CAPTCHA. Vui lòng kiểm tra trong trình xem mặc định.")
-            log_message("Sau khi xem, nhấn nút Quay lại trên điện thoại để trở về Termux và nhập mã CAPTCHA.")
+            log_message("Đã mở hình CAPTCHA. Vui lòng kiểm tra trong trình xem mặc định.", Fore.LIGHTYELLOW_EX)
+            log_message("Sau khi xem, nhấn nút Quay lại trên điện thoại để trở về Termux và nhập mã CAPTCHA.", Fore.LIGHTYELLOW_EX)
             return True
         else:
             log_message(f"Lỗi khi mở hình trong Termux: {result.stderr}", Fore.RED)
@@ -94,24 +73,33 @@ def format_time(seconds):
 def display_banner():
     """Hiển thị banner chuyên nghiệp của BaoDz."""
     banner = """
-    ╔═══════════════════════════════════════╗
-    ║       BaoDz Zefoy Bot - TikTok        ║
-    ║  Tăng Views, Hearts, Shares & Hơn Nữa ║
-    ║  Phiên bản: 1.0.0 | Tác giả: BaoDz    ║
-    ╚═══════════════════════════════════════╝
+    ╔══════════════════════════════════════════════════════╗
+    ║                 BaoDz Zefoy Bot - TikTok             ║
+    ║       Tăng Views, Hearts, Shares & Hơn Nữa           ║
+    ║       Phiên bản: 1.0.0 | Tác giả: BaoDz             ║
+    ╚══════════════════════════════════════════════════════╝
     """
-    print(Fore.CYAN + banner + Style.RESET_ALL)
+    print(Fore.LIGHTCYAN_EX + banner + Style.RESET_ALL)
 
 def display_menu(available_modes):
     """Hiển thị menu lựa chọn chế độ chuyên nghiệp."""
     clear_screen()
     display_banner()
-    print(f"{Fore.CYAN}┌────── Chọn Chế Độ ──────┐{Style.RESET_ALL}")
+    print(f"{Fore.LIGHTCYAN_EX}┌────────────────── Chọn Chế Độ ──────────────────┐{Style.RESET_ALL}")
     for i, mode in enumerate(available_modes, 1):
         mode_vn = {"Hearts": "Lượt Thích", "Views": "Lượt Xem", "Shares": "Lượt Chia Sẻ", "Favorites": "Lượt Yêu Thích", "Live Stream": "Live Stream"}.get(mode, mode)
-        print(f"{Fore.GREEN}│ {i}. {mode_vn:<20} │{Style.RESET_ALL}")
-    print(f"{Fore.CYAN}└──────────────────────────┘{Style.RESET_ALL}")
-    print(f"{Fore.WHITE}Nhập số chế độ: {Style.RESET_ALL}", end="")
+        print(f"{Fore.LIGHTGREEN_EX}│ {i}. {mode_vn:<40} │{Style.RESET_ALL}")
+    print(f"{Fore.LIGHTCYAN_EX}└─────────────────────────────────────────────────┘{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}│ Nhập số chế độ: {Style.RESET_ALL}", end="")
+
+def display_stats(bot):
+    """Hiển thị thống kê dưới dạng bảng."""
+    print(f"{Fore.LIGHTMAGENTA_EX}┌────────────────── Thống Kê ─────────────────────┐{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}│ Lượt Xem:      {bot.views:<30} │{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}│ Lượt Thích:    {bot.hearts:<30} │{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}│ Lượt Chia Sẻ:  {bot.shares:<30} │{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}│ Lượt Yêu Thích:{bot.favorites:<30} │{Style.RESET_ALL}")
+    print(f"{Fore.LIGHTMAGENTA_EX}└─────────────────────────────────────────────────┘{Style.RESET_ALL}")
 
 class Bot:
     def __init__(self):
@@ -171,7 +159,10 @@ class Bot:
                 )
                 if not button.get_attribute("disabled"):
                     available_modes.append(text)
-                log_message(f"Đã tìm thấy nút {text}")
+                else:
+                    if text == "Hearts":
+                        log_message("API Lượt Thích hiện đang hết. Bot sẽ kiểm tra lại sau.", Fore.LIGHTYELLOW_EX)
+                log_message(f"Đã tìm thấy nút {text}", Fore.LIGHTCYAN_EX)
             except Exception as e:
                 log_message(f"Lỗi tìm nút {text}: {e}", Fore.RED)
 
@@ -192,25 +183,19 @@ class Bot:
                     captcha_img_tag = WebDriverWait(self.driver, 10).until(
                         EC.presence_of_element_located((By.XPATH, '//img[@class="img-thumbnail card-img-top border-0"]'))
                     )
-                    log_message("Đã tìm thấy hình CAPTCHA")
                     captcha_img_tag.screenshot('captcha.png')
-                    log_message("Đã lưu CAPTCHA thành captcha.png")
+                    log_message("Đã lưu CAPTCHA thành captcha.png", Fore.LIGHTGREEN_EX)
 
                     if is_termux():
                         if not open_image_in_termux('captcha.png'):
                             log_message("Không thể mở hình CAPTCHA. Vui lòng mở captcha.png thủ công để xem.", Fore.RED)
-                    else:
-                        ascii_captcha = image_to_ascii('captcha.png')
-                        log_message("Hình CAPTCHA (dạng ASCII):")
-                        print(ascii_captcha)
 
                     try:
                         above_captcha = self.driver.find_element(By.XPATH, '//div[contains(@class, "card-body")]//p')
                         above_text = above_captcha.text
-                        log_message(f"Văn bản phía trên CAPTCHA: {above_text}")
+                        log_message(f"Văn bản phía trên CAPTCHA: {above_text}", Fore.LIGHTYELLOW_EX)
                     except:
-                        above_text = "Không tìm thấy văn bản phía trên CAPTCHA"
-                        log_message(above_text)
+                        log_message("", Fore.LIGHTYELLOW_EX)
 
                     captcha_text = input(f"{Fore.WHITE}Nhập mã CAPTCHA: {Style.RESET_ALL}")
                     if not captcha_text:
@@ -229,14 +214,14 @@ class Bot:
                         )
                         submit_button.click()
                     except:
-                        log_message("Không tìm thấy hoặc không cần nút gửi.")
+                        log_message("Không tìm thấy hoặc không cần nút gửi.", Fore.LIGHTYELLOW_EX)
 
                     time.sleep(3)
                     if self.driver.find_elements(By.XPATH, '/html/body/div[6]/div/div[2]/div/div/div[1]'):
-                        log_message("CAPTCHA được chấp nhận.", Fore.GREEN)
+                        log_message("CAPTCHA được chấp nhận.", Fore.LIGHTGREEN_EX)
                         return True
                     else:
-                        log_message("CAPTCHA không đúng, thử lại...", Fore.YELLOW)
+                        log_message("CAPTCHA không đúng, thử lại...", Fore.LIGHTYELLOW_EX)
                         self.driver.refresh()
                         time.sleep(3)
                 except Exception as e:
@@ -248,6 +233,32 @@ class Bot:
         except Exception as e:
             log_message(f"Lỗi khi giải CAPTCHA: {e}", Fore.RED)
             return False
+
+    def check_hearts_api(self):
+        """Kiểm tra xem API Hearts có khả dụng không."""
+        try:
+            button = WebDriverWait(self.driver, 5).until(
+                EC.presence_of_element_located((By.XPATH, '//button[contains(@class, "t-hearts-button")]'))
+            )
+            return not button.get_attribute("disabled")
+        except:
+            return False
+
+    def wait_for_api(self, check_interval=300):
+        """Chờ cho đến khi API Hearts khả dụng trở lại."""
+        log_message("API Lượt Thích đang hết. Đang đợi...", Fore.LIGHTYELLOW_EX)
+        while self.running:
+            start_wait = time.time()
+            while time.time() - start_wait < check_interval and self.running:
+                remaining = int(check_interval - (time.time() - start_wait))
+                print(f"\r{Fore.LIGHTYELLOW_EX}Đang đợi API Lượt Thích: Còn {format_time(remaining)}{Style.RESET_ALL}", end='')
+                time.sleep(1)
+            print()
+            self.driver.refresh()
+            if self.check_hearts_api():
+                log_message("API Lượt Thích đã khả dụng! Tiếp tục chạy.", Fore.LIGHTGREEN_EX)
+                return True
+            log_message("API Lượt Thích vẫn chưa khả dụng. Tiếp tục đợi...", Fore.LIGHTYELLOW_EX)
 
     def parse_wait_time(self, text):
         match = re.search(r'(\d+) minute\(s\) (\d{1,2}) second\(s\)', text)
@@ -267,14 +278,14 @@ class Bot:
             elapsed = time.time() - self.start_time
             remaining = int(wait_seconds - (time.time() - start_wait))
             future_time = format_time(elapsed + remaining)
-            print(f"\r{Fore.CYAN}Thời gian chạy: {format_time(elapsed)} | Chờ: {Fore.WHITE}{remaining}s (đến {future_time}){Style.RESET_ALL}", end='')
+            print(f"\r{Fore.LIGHTCYAN_EX}Thời gian chạy: {format_time(elapsed)} | Chờ: {Fore.WHITE}{remaining}s (đến {future_time}){Style.RESET_ALL}", end='')
             time.sleep(1)
         print()
 
     def increment_mode_count(self, mode):
         if mode == "Views":
-            self.views += 1000
-            return 1000
+            self.views += 500  # Chỉ tăng 500 lượt xem mỗi lần
+            return 500
         elif mode == "Hearts":
             increment = random.randint(11, 15)
             self.hearts += increment
@@ -326,6 +337,13 @@ class Bot:
         }
 
         while self.running and (self.views < amount or self.hearts < amount or self.shares < amount or self.favorites < amount):
+            # Kiểm tra API Hearts nếu đang ở chế độ Hearts
+            if mode == "Hearts" and not self.check_hearts_api():
+                self.wait_for_api()
+                if not self.running:
+                    break
+                continue
+
             try:
                 self.driver.refresh()
                 WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
@@ -370,17 +388,17 @@ class Bot:
                 increment = self.increment_mode_count(mode)
                 self.success_count += 1
                 mode_vn = {"Hearts": "Lượt Thích", "Views": "Lượt Xem", "Shares": "Lượt Chia Sẻ", "Favorites": "Lượt Yêu Thích", "Live Stream": "Live Stream"}.get(mode, mode)
-                log_message(f"Thành công: Đã thêm {increment} {mode_vn}!", Fore.GREEN)
-                log_message(f"Thống kê: Xem={self.views} | Thích={self.hearts} | Chia sẻ={self.shares} | Yêu thích={self.favorites}", Fore.MAGENTA)
+                log_message(f"Thành công: Đã thêm {increment} {mode_vn}!", Fore.LIGHTGREEN_EX)
+                display_stats(self)  # Hiển thị thống kê dưới dạng bảng
 
-                # Kiểm tra nếu đã gửi 4 lần thành công
-                if self.success_count >= 4:
-                    log_message("Đã gửi 4 lần. Nghỉ 10 phút...", Fore.YELLOW)
+                # Kiểm tra nếu đã gửi 5 lần thành công
+                if self.success_count >= 5:
+                    log_message("Đã gửi 5 lần. Nghỉ 10 phút...", Fore.LIGHTYELLOW_EX)
                     rest_time = 600
                     start_rest = time.time()
                     while time.time() - start_rest < rest_time and self.running:
                         remaining = int(rest_time - (time.time() - start_rest))
-                        print(f"\r{Fore.YELLOW}Đang nghỉ: Còn {format_time(remaining)}{Style.RESET_ALL}", end='')
+                        print(f"\r{Fore.LIGHTYELLOW_EX}Đang nghỉ: Còn {format_time(remaining)}{Style.RESET_ALL}", end='')
                         time.sleep(1)
                     print()
                     self.success_count = 0
@@ -391,7 +409,7 @@ class Bot:
                    (mode == "Hearts" and self.hearts >= amount) or \
                    (mode == "Shares" and self.shares >= amount) or \
                    (mode == "Favorites" and self.favorites >= amount):
-                    log_message(f"Đã đạt giới hạn {mode_vn}: {amount}", Fore.YELLOW)
+                    log_message(f"Đã đạt giới hạn {mode_vn}: {amount}", Fore.LIGHTYELLOW_EX)
                     self.running = False
                     break
             except Exception as e:
@@ -402,7 +420,10 @@ class Bot:
     def stop(self):
         self.running = False
         if self.driver:
-            self.driver.quit()
+            try:
+                self.driver.quit()
+            except Exception:
+                pass  # Bỏ qua lỗi khi đóng driver để tránh hiển thị thông báo lỗi
 
 def main():
     clear_screen()
@@ -422,28 +443,30 @@ def main():
         if 1 <= mode_choice <= len(available_modes):
             mode = available_modes[mode_choice - 1]
         else:
-            log_message(f"Lựa chọn không hợp lệ. Vui lòng chọn số từ 1 đến {len(available_modes)}.", Fore.RED)
+            log_message(f"│ Lựa chọn không hợp lệ. Vui lòng chọn số từ 1 đến {len(available_modes)}.", Fore.RED)
             bot.stop()
             return
     except ValueError:
-        log_message("Vui lòng nhập một số hợp lệ.", Fore.RED)
+        log_message("│ Vui lòng nhập một số hợp lệ.", Fore.RED)
         bot.stop()
         return
 
     # Lấy thông tin từ người dùng
-    print(f"{Fore.CYAN}┌────── Nhập Thông Tin ──────┐{Style.RESET_ALL}")
-    vid_url = input(f"{Fore.WHITE}│ Nhập URL video TikTok: {Style.RESET_ALL}")
+    print(f"{Fore.LIGHTCYAN_EX}┌────────────────── Nhập Thông Tin ───────────────┐{Style.RESET_ALL}")
+    print(f"{Fore.LIGHTCYAN_EX}|                                                 |{Style.RESET_ALL}")
+    vid_url = input(f"{Fore.WHITE}│ Nhập URL video TikTok:                           {Style.RESET_ALL}")
     mode_vn = {"Hearts": "Lượt Thích", "Views": "Lượt Xem", "Shares": "Lượt Chia Sẻ", "Favorites": "Lượt Yêu Thích", "Live Stream": "Live Stream"}.get(mode, mode)
     try:
-        amount = int(input(f"{Fore.WHITE}│ Nhập số lượng {mode_vn}: {Style.RESET_ALL}"))
+        amount = int(input(f"{Fore.WHITE}│ Nhập số lượng {mode_vn:<32} {Style.RESET_ALL}"))
     except ValueError:
-        log_message("Số lượng phải là một số.", Fore.RED)
+        log_message("│ Số lượng phải là một số.", Fore.RED)
         bot.stop()
         return
-    print(f"{Fore.CYAN}└────────────────────────────┘{Style.RESET_ALL}")
+    print(f"{Fore.LIGHTCYAN_EX}|                                                 |{Style.RESET_ALL}")
+    print(f"{Fore.LIGHTCYAN_EX}└─────────────────────────────────────────────────┘{Style.RESET_ALL}")
 
     # Khởi chạy bot
-    print(f"{Fore.GREEN}Bắt đầu tăng {mode_vn}...{Style.RESET_ALL}")
+    print(f"{Fore.LIGHTGREEN_EX}Bắt đầu tăng {mode_vn}...{Style.RESET_ALL}")
     bot.running = True
     bot.start_time = time.time()
 
@@ -456,16 +479,16 @@ def main():
         while bot.running:
             time.sleep(1)
     except KeyboardInterrupt:
-        log_message("Đang dừng bot...", Fore.YELLOW)
+        log_message("Đang dừng bot...", Fore.LIGHTYELLOW_EX)
         bot.stop()
-        log_message("Bot đã dừng. Cảm ơn bạn đã sử dụng BaoDz Zefoy Bot!", Fore.GREEN)
+        log_message("Bot đã dừng. Cảm ơn bạn đã sử dụng BaoDz Zefoy Bot!", Fore.LIGHTGREEN_EX)
 
 if __name__ == "__main__":
     try:
         import selenium, chromedriver_autoinstaller, colorama, PIL
     except ImportError:
-        log_message("Đang cài đặt các thư viện cần thiết...", Fore.YELLOW)
+        log_message("Đang cài đặt các thư viện cần thiết...", Fore.LIGHTYELLOW_EX)
         os.system("pip install selenium chromedriver_autoinstaller colorama pillow")
-        log_message("Đã cài đặt thư viện. Vui lòng chạy lại script.", Fore.GREEN)
+        log_message("Đã cài đặt thư viện. Vui lòng chạy lại script.", Fore.LIGHTGREEN_EX)
         exit(0)
     main()
