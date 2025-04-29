@@ -62,7 +62,7 @@ def main():
     display_account_info(username)
     divider()  # Thêm gạch phân cách sau thông tin tài khoản
 
-    # Headers cho request
+    # Headers cho request (giữ nguyên từ script gốc)
     headers = {
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
         'accept-language': 'vi,fr-FR;q=0.9,fr;q=0.8,en-US;q=0.7,en;q=0.6',
@@ -82,79 +82,53 @@ def main():
 
     while True:
         try:
-            # Gửi yêu cầu lấy session và token
+            # Gửi yêu cầu lấy session và token (logic từ script gốc)
             access = requests.get('https://tikfollowers.com/free-tiktok-followers', headers=headers)
-            access.raise_for_status()  # Kiểm tra lỗi HTTP
-
-            # Lấy session từ cookie
-            session = access.cookies.get('ci_session')
-            if not session:
-                log_message("Lỗi: Không thể lấy ci_session từ cookie!", Fore.RED)
-                time.sleep(5)
-                continue
-
+            session = access.cookies['ci_session']  # Lấy ci_session trực tiếp
             headers.update({'cookie': f'ci_session={session}'})
-
-            # Lấy token từ nội dung HTML
-            token_match = re.search(r"csrf_token = '([^']+)'", access.text)
-            if not token_match:
-                log_message("Lỗi: Không thể tìm thấy CSRF token!", Fore.RED)
-                time.sleep(5)
-                continue
-            token = token_match.group(1)
+            token = access.text.split("csrf_token = '")[1].split("'")[0]
 
             # Gửi yêu cầu tìm kiếm user
             data = f'{{"type":"follow","q":"@{username}","google_token":"t","token":"{token}"}}'
             search = requests.post('https://tikfollowers.com/api/free', headers=headers, data=data).json()
 
-            if search.get('success') != True:
+            if search['success'] == True:
+                data_follow = search['data']
+                data = f'{{"google_token":"t","token":"{token}","data":"{data_follow}","type":"follow"}}'
+                send_follow = requests.post('https://tikfollowers.com/api/free/send', headers=headers, data=data).json()
+
+                if send_follow['o'] == 'Success!' and send_follow['success'] == True and send_follow['type'] == 'success':
+                    log_message(f"Thành công: Đã gửi Follow cho @{username}!", Fore.LIGHTGREEN_EX)
+                    divider()
+                    continue
+                elif send_follow['o'] == 'Oops...' and send_follow['success'] == False and send_follow['type'] == 'info':
+                    try:
+                        thoigian = send_follow['message'].split('You need to wait for a new transaction. : ')[1].split('.')[0]
+                        phut = thoigian.split(' Minutes')[0]
+                        giay = int(phut) * 60
+                        for i in range(giay, 0, -1):
+                            print(f"\r{Fore.LIGHTYELLOW_EX}Đang chờ: Còn {format_time(i)}...{Style.RESET_ALL}", end='')
+                            time.sleep(1)
+                        print()
+                        divider()
+                        continue
+                    except:
+                        log_message("Lỗi: Không thể phân tích thời gian chờ từ server!", Fore.RED)
+                        time.sleep(5)
+                        continue
+            else:
                 log_message(f"Lỗi: Không thể tìm thấy @{username} hoặc yêu cầu thất bại!", Fore.RED)
                 time.sleep(5)
                 continue
 
-            data_follow = search.get('data')
-            if not data_follow:
-                log_message("Lỗi: Không nhận được data để gửi Follow!", Fore.RED)
-                time.sleep(5)
-                continue
-
-            # Gửi yêu cầu tăng Follow
-            data = f'{{"google_token":"t","token":"{token}","data":"{data_follow}","type":"follow"}}'
-            send_follow = requests.post('https://tikfollowers.com/api/free/send', headers=headers, data=data).json()
-
-            if send_follow.get('o') == 'Success!' and send_follow.get('success') == True and send_follow.get('type') == 'success':
-                log_message(f"Thành công: Đã gửi Follow cho @{username}!", Fore.LIGHTGREEN_EX)
-                divider()  # Thêm gạch phân cách
-                continue
-
-            elif send_follow.get('o') == 'Oops...' and send_follow.get('success') == False and send_follow.get('type') == 'info':
-                try:
-                    message = send_follow.get('message', '')
-                    thoigian_match = re.search(r'You need to wait for a new transaction\. : (\d+) Minutes', message)
-                    if not thoigian_match:
-                        log_message("Lỗi: Không thể phân tích thời gian chờ từ server!", Fore.RED)
-                        time.sleep(5)
-                        continue
-
-                    phut = int(thoigian_match.group(1))
-                    giay = phut * 60
-
-                    # Bộ đếm ngược thời gian thực
-                    for i in range(giay, 0, -1):
-                        print(f"\r{Fore.LIGHTYELLOW_EX}Đang chờ: Còn {format_time(i)}...{Style.RESET_ALL}", end='')
-                        time.sleep(1)
-                    print()
-                    divider()  # Thêm gạch phân cách sau khi chờ
-                    continue
-                except Exception as e:
-                    log_message(f"Lỗi: Không thể xử lý thời gian chờ - {str(e)}", Fore.RED)
-                    time.sleep(5)
-                    continue
-            else:
-                log_message("Lỗi: Phản hồi từ server không hợp lệ!", Fore.RED)
-                time.sleep(5)
-                continue
-
+        except KeyError:
+            log_message("Lỗi: Không thể lấy ci_session từ cookie!", Fore.RED)
+            time.sleep(5)
+            continue
+        except IndexError:
+            log_message("Lỗi: Không thể tìm thấy CSRF token!", Fore.RED)
+            time.sleep(5)
+            continue
         except requests.exceptions.RequestException as e:
             log_message(f"Lỗi kết nối: {str(e)}", Fore.RED)
             time.sleep(5)
