@@ -38,28 +38,29 @@ def display_banner():
     print(Fore.LIGHTCYAN_EX + banner + Style.RESET_ALL)
 
 def display_account_info(username):
-    """Hiển thị thông tin tài khoản TikTok trong khung viền."""
-    print(f"{Fore.LIGHTCYAN_EX}┌────────────────── Thông Tin Tài Khoản ──────────┐{Style.RESET_ALL}")
-    print(f"{Fore.WHITE}│ Tài khoản: @{username:<39}   │{Style.RESET_ALL}")
-    print(f"{Fore.LIGHTCYAN_EX}└─────────────────────────────────────────────────┘{Style.RESET_ALL}")
+    """Hiển thị thông tin tài khoản TikTok với đường gạch phân cách."""
+    print(f"{Fore.LIGHTCYAN_EX}════════════════════════════════════════════════{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}Tài khoản: @{username}{Style.RESET_ALL}")
+    print(f"{Fore.LIGHTCYAN_EX}════════════════════════════════════════════════{Style.RESET_ALL}")
 
 def main():
     clear_screen()
     display_banner()
 
     # Nhập thông tin username
-    print(f"{Fore.LIGHTCYAN_EX}═══════════════════ Nhập Thông Tin ════════════════{Style.RESET_ALL}")
-    username = input(f"{Fore.WHITE}│ Nhập Username TikTok (Không nhập @):           {Style.RESET_ALL}").strip()
-    print(f"{Fore.LIGHTCYAN_EX}═══════════════════════════════════════════════════{Style.RESET_ALL}")
+    print(f"{Fore.LIGHTCYAN_EX}════════════════════════════════════════════════{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}Nhập Username TikTok (Không nhập @): {Style.RESET_ALL}", end="")
+    username = input().strip()
+    print(f"{Fore.LIGHTCYAN_EX}════════════════════════════════════════════════{Style.RESET_ALL}")
 
     if not username:
         log_message("Lỗi: Vui lòng nhập username!", Fore.RED)
         return
 
-    # Hiển thị thông tin tài khoản trong khung viền
-    clear_screen()  # Xóa màn hình trước khi hiển thị khung thông tin tài khoản
+    # Hiển thị thông tin tài khoản với đường gạch phân cách
+    clear_screen()  # Xóa màn hình trước khi hiển thị thông tin tài khoản
     display_account_info(username)
-    divider()  # Thêm gạch phân cách sau khung thông tin tài khoản
+    divider()  # Thêm gạch phân cách sau thông tin tài khoản
 
     # Headers cho request
     headers = {
