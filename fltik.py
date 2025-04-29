@@ -40,7 +40,7 @@ def display_banner():
 def display_account_info(username):
     """Hiển thị thông tin tài khoản TikTok trong khung viền."""
     print(f"{Fore.LIGHTCYAN_EX}┌────────────────── Thông Tin Tài Khoản ──────────┐{Style.RESET_ALL}")
-    print(f"{Fore.WHITE}│ Tài khoản: @{username:<39} │{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}│ Tài khoản: @{username:<39}   │{Style.RESET_ALL}")
     print(f"{Fore.LIGHTCYAN_EX}└─────────────────────────────────────────────────┘{Style.RESET_ALL}")
 
 def main():
@@ -48,9 +48,9 @@ def main():
     display_banner()
 
     # Nhập thông tin username
-    print(f"{Fore.LIGHTCYAN_EX}┌────────────────── Nhập Thông Tin ───────────────┐{Style.RESET_ALL}")
-    username = input(f"{Fore.WHITE}│ Nhập Username TikTok (Không nhập @):             {Style.RESET_ALL}").strip()
-    print(f"{Fore.LIGHTCYAN_EX}└─────────────────────────────────────────────────┘{Style.RESET_ALL}")
+    print(f"{Fore.LIGHTCYAN_EX}═══════════════════ Nhập Thông Tin ════════════════{Style.RESET_ALL}")
+    username = input(f"{Fore.WHITE}│ Nhập Username TikTok (Không nhập @):           {Style.RESET_ALL}").strip()
+    print(f"{Fore.LIGHTCYAN_EX}═══════════════════════════════════════════════════{Style.RESET_ALL}")
 
     if not username:
         log_message("Lỗi: Vui lòng nhập username!", Fore.RED)
