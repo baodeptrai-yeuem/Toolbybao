@@ -70,6 +70,17 @@ def format_time(seconds):
     """Định dạng thời gian từ giây sang HH:MM:SS."""
     return time.strftime('%H:%M:%S', time.gmtime(seconds))
 
+def is_valid_tiktok_url(url):
+    """Kiểm tra xem URL có phải là URL video TikTok hợp lệ không."""
+    # Kiểm tra URL đầy đủ (https://www.tiktok.com/@username/video/video_id)
+    full_url_pattern = r'^https://www\.tiktok\.com/@[a-zA-Z0-9._]+/video/\d+(\?.*)?$'
+    # Kiểm tra URL rút gọn (https://vt.tiktok.com/some_id/)
+    short_url_pattern = r'^https://vt\.tiktok\.com/[a-zA-Z0-9]+/?$'
+
+    if re.match(full_url_pattern, url) or re.match(short_url_pattern, url):
+        return True
+    return False
+
 def display_banner():
     """Hiển thị banner chuyên nghiệp của BaoDz."""
     banner = """
@@ -460,7 +471,12 @@ def main():
     # Lấy thông tin từ người dùng
     print(f"{Fore.LIGHTCYAN_EX}┌────────────────── Nhập Thông Tin ───────────────┐{Style.RESET_ALL}")
     print(f"{Fore.LIGHTCYAN_EX}|                                                 |{Style.RESET_ALL}")
-    vid_url = input(f"{Fore.WHITE}│ Nhập URL video TikTok:                           {Style.RESET_ALL}")
+    vid_url = input(f"{Fore.WHITE}│ Nhập URL video TikTok:                           {Style.RESET_ALL}").strip()
+    # Kiểm tra URL TikTok hợp lệ
+    if not is_valid_tiktok_url(vid_url):
+        log_message("│ URL TikTok không hợp lệ. Vui lòng nhập URL video TikTok hợp lệ.", Fore.RED)
+        bot.stop()
+        return
     mode_vn = {"Hearts": "Lượt Thích", "Views": "Lượt Xem", "Shares": "Lượt Chia Sẻ", "Favorites": "Lượt Yêu Thích", "Live Stream": "Live Stream"}.get(mode, mode)
     try:
         amount = int(input(f"{Fore.WHITE}│ Nhập số lượng {mode_vn:<32} {Style.RESET_ALL}"))
