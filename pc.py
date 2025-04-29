@@ -75,8 +75,8 @@ def display_banner():
     banner = """
     ╔══════════════════════════════════════════════════════╗
     ║                 BaoDz Zefoy Bot - TikTok             ║
-    ║       Tăng Views, Hearts, Shares & Hơn Nữa           ║
-    ║       Phiên bản: 1.0.0 | Tác giả: BaoDz             ║
+    ║                Tăng Views, Hearts, Shares            ║
+    ║             Phiên bản: 1.0.0 | Tác giả: BaoDz        ║
     ╚══════════════════════════════════════════════════════╝
     """
     print(Fore.LIGHTCYAN_EX + banner + Style.RESET_ALL)
