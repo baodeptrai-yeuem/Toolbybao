@@ -2,10 +2,25 @@ import requests
 import time
 import os
 
-# Xóa màn hình
+# Clear screen for a clean interface
 os.system('cls' if os.name == 'nt' else 'clear')
 
-username = input('Nhập Username Tik Tok mà mày muốn kéo 300tr 🤑( Không Nhập @ giùm bố cái ): ')
+def print_header():
+    print("\033[1;36m" + "="*50 + "\033[0m")
+    print("\033[1;36m|\033[0m" + " TikTok Follower Booster ".center(48) + "\033[1;36m|\033[0m")
+    print("\033[1;36m" + "="*50 + "\033[0m")
+
+def print_success(message):
+    print("\033[1;32m✔ " + message + "\033[0m")
+
+def print_error(message):
+    print("\033[1;31m✘ " + message + "\033[0m")
+
+def print_waiting(seconds):
+    print(f"\033[1;33m⏳ Vui lòng chờ {seconds} giây...\033[0m", end='\r')
+
+print_header()
+username = input('\033[1;34mNhập Username TikTok (không cần @): \033[0m')
 
 while True:
     headers = {
@@ -39,7 +54,7 @@ while True:
             send_follow = requests.post('https://tikfollowers.com/api/free/send', headers=headers, data=data).json()
             
             if send_follow['o'] == 'Success!' and send_follow['success'] == True and send_follow['type'] == 'success':
-                print('Búc Follow Tik Tok Thành Công,Vô Tik Check Đi Thk Cu ')
+                print_success('Tăng Follow TikTok thành công! Vào TikTok kiểm tra ngay!')
                 continue
             
             elif send_follow['o'] == 'Oops...' and send_follow['success'] == False and send_follow['type'] == 'info':
@@ -49,14 +64,15 @@ while True:
                     giay = int(phut) * 60
                     
                     for i in range(giay, 0, -1):
-                        print(f'Vui Lòng Chờ {i} Giây...', end='\r')
+                        print_waiting(i)
                         time.sleep(1)
+                    print(" " * 50, end='\r')  # Clear waiting message
                     continue
                 
                 except:
-                    print('Lỗi Không Xác Định               ')
+                    print_error('Lỗi không xác định. Thử lại...')
                     continue
     
     except:
-        print('Lỗi Không Xác Định               ')
+        print_error('Lỗi không xác định. Thử lại...')
         continue
