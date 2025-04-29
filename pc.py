@@ -72,14 +72,9 @@ def format_time(seconds):
 
 def is_valid_tiktok_url(url):
     """Kiểm tra xem URL có phải là URL video TikTok hợp lệ không."""
-    # Kiểm tra URL đầy đủ (https://www.tiktok.com/@username/video/video_id)
     full_url_pattern = r'^https://www\.tiktok\.com/@[a-zA-Z0-9._]+/video/\d+(\?.*)?$'
-    # Kiểm tra URL rút gọn (https://vt.tiktok.com/some_id/)
     short_url_pattern = r'^https://vt\.tiktok\.com/[a-zA-Z0-9]+/?$'
-
-    if re.match(full_url_pattern, url) or re.match(short_url_pattern, url):
-        return True
-    return False
+    return re.match(full_url_pattern, url) or re.match(short_url_pattern, url)
 
 def display_banner():
     """Hiển thị banner chuyên nghiệp của BaoDz."""
@@ -117,8 +112,6 @@ class Bot:
     def setup_bot(self):
         loading_animation("Đang khởi tạo bot")
         chromedriver_autoinstaller.install()
-
-        # Cấu hình Chrome
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--disable-gpu")
@@ -128,10 +121,7 @@ class Bot:
         options.add_argument("--log-level=3")
         options.add_argument("--disable-webgl")
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
-
-        # Tắt log của ChromeDriver
         service = Service(log_path=os.devnull, service_args=["--silent"])
-
         try:
             self.driver = webdriver.Chrome(service=service, options=options)
         except Exception as e:
@@ -140,7 +130,6 @@ class Bot:
 
         self.driver.execute_cdp_cmd("Network.setBlockedURLs", {"urls": ["https://fundingchoicesmessages.google.com/*"]})
         self.driver.execute_cdp_cmd("Network.enable", {})
-
         if not self.get_captcha():
             log_message("Không thể giải CAPTCHA. Thoát.", Fore.RED)
             return False
@@ -171,7 +160,6 @@ class Bot:
         if not available_modes:
             log_message("Không tìm thấy chế độ nào khả dụng. Kiểm tra cấu trúc trang hoặc kết nối mạng.", Fore.RED)
             return False
-
         return available_modes
 
     def get_captcha(self):
@@ -179,7 +167,6 @@ class Bot:
         try:
             self.driver.get(url)
             WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
-
             for attempt in range(3):
                 try:
                     captcha_img_tag = WebDriverWait(self.driver, 10).until(
@@ -187,29 +174,24 @@ class Bot:
                     )
                     captcha_img_tag.screenshot('captcha.png')
                     log_message("Đã lưu CAPTCHA thành captcha.png", Fore.LIGHTGREEN_EX)
-
                     if is_termux():
                         if not open_image_in_termux('captcha.png'):
                             log_message("Không thể mở hình CAPTCHA. Vui lòng mở captcha.png thủ công để xem.", Fore.RED)
-
                     try:
                         above_captcha = self.driver.find_element(By.XPATH, '//div[contains(@class, "card-body")]//p')
                         above_text = above_captcha.text
                         log_message(f"Văn bản phía trên CAPTCHA: {above_text}", Fore.LIGHTYELLOW_EX)
                     except:
                         log_message("", Fore.LIGHTYELLOW_EX)
-
                     captcha_text = input(f"{Fore.WHITE}Nhập mã CAPTCHA: {Style.RESET_ALL}")
                     if not captcha_text:
                         log_message("Chưa nhập mã CAPTCHA.", Fore.RED)
                         continue
-
                     input_field = WebDriverWait(self.driver, 10).until(
                         EC.presence_of_element_located((By.XPATH, '//input[@class="form-control form-control-lg text-center rounded-0 remove-spaces"]'))
                     )
                     input_field.clear()
                     input_field.send_keys(captcha_text)
-
                     try:
                         submit_button = WebDriverWait(self.driver, 5).until(
                             EC.element_to_be_clickable((By.XPATH, '//button[@type="submit"]'))
@@ -217,7 +199,6 @@ class Bot:
                         submit_button.click()
                     except:
                         log_message("Không tìm thấy hoặc không cần nút gửi.", Fore.LIGHTYELLOW_EX)
-
                     time.sleep(3)
                     if self.driver.find_elements(By.XPATH, '/html/body/div[6]/div/div[2]/div/div/div[1]'):
                         log_message("CAPTCHA được chấp nhận.", Fore.LIGHTGREEN_EX)
@@ -286,7 +267,7 @@ class Bot:
 
     def increment_mode_count(self, mode):
         if mode == "Views":
-            self.views += 500  # Chỉ tăng 500 lượt xem mỗi lần
+            self.views += 500
             return 500
         elif mode == "Hearts":
             increment = random.randint(11, 15)
@@ -303,7 +284,7 @@ class Bot:
         return 0
 
     def display_total(self, mode):
-        """Hiển thị tổng số của chức năng hiện tại."""
+        """Trả về chuỗi tổng số của chức năng hiện tại với màu vàng pha xanh lá cây."""
         mode_vn = {"Hearts": "Lượt Thích", "Views": "Lượt Xem", "Shares": "Lượt Chia Sẻ", "Favorites": "Lượt Yêu Thích", "Live Stream": "Live Stream"}.get(mode, mode)
         if mode == "Views":
             total = self.views
@@ -315,7 +296,7 @@ class Bot:
             total = self.favorites
         else:
             total = 0
-        log_message(f"Tổng số {mode_vn}: {total}", Fore.LIGHTMAGENTA_EX)
+        return f"{Fore.LIGHTYELLOW_EX} | Tổng số {mode_vn}: {Fore.GREEN}{total}{Style.RESET_ALL}"
 
     def loop(self, vidUrl, mode, amount):
         data = {
@@ -354,7 +335,6 @@ class Bot:
         }
 
         while self.running and (self.views < amount or self.hearts < amount or self.shares < amount or self.favorites < amount):
-            # Kiểm tra API Hearts nếu đang ở chế độ Hearts
             if mode == "Hearts" and not self.check_hearts_api():
                 self.wait_for_api()
                 if not self.running:
@@ -365,25 +345,21 @@ class Bot:
                 self.driver.refresh()
                 WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
                 time.sleep(2)
-
                 main_button = WebDriverWait(self.driver, 10).until(
                     EC.element_to_be_clickable((By.XPATH, data[mode]["MainButton"]))
                 )
                 main_button.click()
                 time.sleep(2)
-
                 input_field = WebDriverWait(self.driver, 10).until(
                     EC.presence_of_element_located((By.XPATH, data[mode]["Input"]))
                 )
                 input_field.send_keys(vidUrl)
                 time.sleep(2)
-
                 search_button = WebDriverWait(self.driver, 10).until(
                     EC.element_to_be_clickable((By.XPATH, data[mode]["Search"]))
                 )
                 search_button.click()
                 time.sleep(6)
-
                 wait_text = self.driver.find_element(By.XPATH, data[mode]["TextBeforeSend"]).text
                 if wait_text:
                     wait_seconds = self.parse_wait_time(wait_text)
@@ -391,24 +367,20 @@ class Bot:
                         self.wait_with_countdown(wait_seconds)
                         self.driver.refresh()
                         continue
-
                 send_button = WebDriverWait(self.driver, 10).until(
                     EC.element_to_be_clickable((By.XPATH, data[mode]["Send"]))
                 )
                 send_button.click()
                 time.sleep(7)
-
                 wait_text = self.driver.find_element(By.XPATH, data[mode]["TextAfterSend"]).text
                 wait_seconds = self.parse_wait_time(wait_text)
-
-                # Tăng số đếm và hiển thị thông báo
                 increment = self.increment_mode_count(mode)
                 self.success_count += 1
                 mode_vn = {"Hearts": "Lượt Thích", "Views": "Lượt Xem", "Shares": "Lượt Chia Sẻ", "Favorites": "Lượt Yêu Thích", "Live Stream": "Live Stream"}.get(mode, mode)
-                log_message(f"Thành công: Đã thêm {increment} {mode_vn}!", Fore.LIGHTGREEN_EX)
-                self.display_total(mode)  # Hiển thị tổng số của chức năng hiện tại
+                success_message = f"Thành công: Đã thêm {increment} {mode_vn}!"
+                total_message = self.display_total(mode)
+                log_message(f"{success_message}{total_message}", Fore.LIGHTGREEN_EX)
 
-                # Kiểm tra nếu đã gửi 5 lần thành công
                 if self.success_count >= 5:
                     log_message("Đã gửi 5 lần. Nghỉ 10 phút...", Fore.LIGHTYELLOW_EX)
                     rest_time = 600
@@ -440,20 +412,17 @@ class Bot:
             try:
                 self.driver.quit()
             except Exception:
-                pass  # Bỏ qua lỗi khi đóng driver để tránh hiển thị thông báo lỗi
+                pass
 
 def main():
     clear_screen()
     display_banner()
     loading_animation("Đang khởi động")
-
-    # Thiết lập bot và lấy danh sách chế độ
     bot = Bot()
     available_modes = bot.setup_bot()
     if not available_modes:
         return
 
-    # Hiển thị menu lựa chọn chế độ
     display_menu(available_modes)
     try:
         mode_choice = int(input())
@@ -468,42 +437,57 @@ def main():
         bot.stop()
         return
 
-    # Lấy thông tin từ người dùng
-    print(f"{Fore.LIGHTCYAN_EX}┌────────────────── Nhập Thông Tin ───────────────┐{Style.RESET_ALL}")
-    print(f"{Fore.LIGHTCYAN_EX}|                                                 |{Style.RESET_ALL}")
-    vid_url = input(f"{Fore.WHITE}│ Nhập URL video TikTok:                           {Style.RESET_ALL}").strip()
-    # Kiểm tra URL TikTok hợp lệ
+    print(f"{Fore.LIGHTCYAN_EX}══════════════════════════════════════════════{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}Nhập URL video TikTok: {Style.RESET_ALL}", end="")
+    vid_url = input().strip()
     if not is_valid_tiktok_url(vid_url):
-        log_message("│ URL TikTok không hợp lệ. Vui lòng nhập URL video TikTok hợp lệ.", Fore.RED)
+        log_message("URL TikTok không hợp lệ. Vui lòng nhập URL video TikTok hợp lệ.", Fore.RED)
         bot.stop()
         return
     mode_vn = {"Hearts": "Lượt Thích", "Views": "Lượt Xem", "Shares": "Lượt Chia Sẻ", "Favorites": "Lượt Yêu Thích", "Live Stream": "Live Stream"}.get(mode, mode)
+    print(f"{Fore.WHITE}Nhập số lượng {mode_vn}: {Style.RESET_ALL}", end="")
     try:
-        amount = int(input(f"{Fore.WHITE}│ Nhập số lượng {mode_vn:<32} {Style.RESET_ALL}"))
+        amount = int(input())
     except ValueError:
-        log_message("│ Số lượng phải là một số.", Fore.RED)
+        log_message("Số lượng phải là một số.", Fore.RED)
         bot.stop()
         return
-    print(f"{Fore.LIGHTCYAN_EX}|                                                 |{Style.RESET_ALL}")
-    print(f"{Fore.LIGHTCYAN_EX}└─────────────────────────────────────────────────┘{Style.RESET_ALL}")
+    print(f"{Fore.LIGHTCYAN_EX}══════════════════════════════════════════════{Style.RESET_ALL}")
 
-    # Khởi chạy bot
-    print(f"{Fore.LIGHTGREEN_EX}Bắt đầu tăng {mode_vn}...{Style.RESET_ALL}")
-    bot.running = True
-    bot.start_time = time.time()
+    while True:
+        print(f"{Fore.LIGHTGREEN_EX}Bắt đầu tăng {mode_vn}...{Style.RESET_ALL}")
+        bot.running = True
+        bot.start_time = time.time()
+        bot.views = 0
+        bot.hearts = 0
+        bot.shares = 0
+        bot.favorites = 0
+        bot.success_count = 0
 
-    # Chạy bot trong luồng riêng
-    bot_thread = threading.Thread(target=bot.loop, args=(vid_url, mode, amount))
-    bot_thread.start()
+        bot_thread = threading.Thread(target=bot.loop, args=(vid_url, mode, amount))
+        bot_thread.start()
 
-    # Xử lý khi người dùng dừng bot
-    try:
-        while bot.running:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        log_message("Đang dừng bot...", Fore.LIGHTYELLOW_EX)
-        bot.stop()
-        log_message("Bot đã dừng. Cảm ơn bạn đã sử dụng BaoDz Zefoy Bot!", Fore.LIGHTGREEN_EX)
+        try:
+            while bot.running:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            log_message("Đang dừng bot...", Fore.LIGHTYELLOW_EX)
+            bot.stop()
+            bot_thread.join()
+            log_message("Bot đã dừng.", Fore.LIGHTGREEN_EX)
+            print(f"{Fore.LIGHTCYAN_EX}══════════════════════════════════════════════{Style.RESET_ALL}")
+            print(f"{Fore.WHITE}Nhập URL video TikTok mới: {Style.RESET_ALL}", end="")
+            new_url = input().strip()
+            print(f"{Fore.LIGHTCYAN_EX}══════════════════════════════════════════════{Style.RESET_ALL}")
+            if not is_valid_tiktok_url(new_url):
+                log_message("URL TikTok không hợp lệ. Vui lòng nhập URL video TikTok hợp lệ.", Fore.RED)
+                continue
+            vid_url = new_url
+            continue
+
+        bot_thread.join()
+        log_message("Cảm ơn bạn đã sử dụng BaoDz Zefoy Bot!", Fore.LIGHTGREEN_EX)
+        break
 
 if __name__ == "__main__":
     try:
