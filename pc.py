@@ -146,15 +146,8 @@ class Bot:
                 button = WebDriverWait(self.driver, 5).until(
                     EC.presence_of_element_located((By.XPATH, xpath))
                 )
-                if not button.get_attribute("disabled"):
-                    mode_status[text] = "Active"
-                else:
-                    mode_status[text] = "Stop"
-                    if text == "Hearts":
-                        log_message("API Lượt Thích hiện đang hết. Bot sẽ kiểm tra lại sau.", Fore.LIGHTYELLOW_EX)
-                log_message(f"Đã kiểm tra nút {text} ({mode_status[text]})", Fore.LIGHTCYAN_EX)
-            except Exception as e:
-                log_message(f"Lỗi kiểm tra nút {text}: {e}", Fore.RED)
+                mode_status[text] = "Active" if not button.get_attribute("disabled") else "Stop"
+            except Exception:
                 mode_status[text] = "Stop"
         
         return available_modes, mode_status
@@ -252,7 +245,7 @@ class Bot:
             return False
 
     def wait_for_api(self, check_interval=300):
-        """Chờ cho đến khi API Hearts hoặc Followers khả dụng trở lại."""
+        """Chờ cho đến khi API khả dụng trở lại."""
         log_message("API đang hết. Đang đợi...", Fore.LIGHTYELLOW_EX)
         while self.running:
             start_wait = time.time()
@@ -263,7 +256,7 @@ class Bot:
             print()
             self.driver.refresh()
             if self.check_hearts_api():
-                log_message("API Lượt Thích đã khả dụng! Tiếp tục chạy.", Fore.LIGHTGREEN_EX)
+                log_message("API đã khả dụng! Tiếp tục chạy.", Fore.LIGHTGREEN_EX)
                 return True
             log_message("API vẫn chưa khả dụng. Tiếp tục đợi...", Fore.LIGHTYELLOW_EX)
 
@@ -383,14 +376,6 @@ class Bot:
             (mode == "Favorites" and self.favorites < amount) or 
             (mode == "Followers" and self.followers < amount)
         ):
-            available_modes, mode_status = self.check_api_status()
-            if mode_status.get(mode) == "Stop":
-                log_message(f"Chế độ {mode} hiện không khả dụng (Stopped due to out of API).", Fore.RED)
-                self.wait_for_api()
-                if not self.running:
-                    break
-                continue
-
             try:
                 self.driver.refresh()
                 WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
@@ -483,6 +468,12 @@ def main():
             mode_choice = int(input())
             if 1 <= mode_choice <= len(available_modes):
                 mode = available_modes[mode_choice - 1]
+                if mode_status.get(mode) == "Stop":
+                    mode_vn = {"Hearts": "Lượt Thích", "Views": "Lượt Xem", "Shares": "Lượt Chia Sẻ", 
+                               "Favorites": "Lượt Yêu Thích", "Live Stream": "Live Stream", 
+                               "Followers": "Lượt Follow"}.get(mode, mode)
+                    log_message(f"Chế độ {mode_vn} hiện không khả dụng (Stopped due to out of API). Vui lòng chọn chế độ khác.", Fore.RED)
+                    continue
             else:
                 log_message(f"│ Lựa chọn không hợp lệ. Vui lòng chọn số từ 1 đến {len(available_modes)}.", Fore.RED)
                 continue
