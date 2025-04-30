@@ -1,4 +1,4 @@
-# CRE : PHUOCAN X JACKCODER
+
 import requests
 import concurrent.futures
 import time
