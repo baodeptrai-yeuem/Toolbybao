@@ -7,7 +7,7 @@ from datetime import datetime
 # Clear screen for a clean interface
 os.system('cls' if os.name == 'nt' else 'clear')
 
-# ============= PHẦN GIAO DIỆN MỚI =============
+# ============= PHẦN GIAO DIỆN =============
 def print_banner():
     banner = """
 \033[95m\033[1m
@@ -28,7 +28,7 @@ def print_banner():
     print(f"\033[93m⏰ Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\033[0m\n")
 
 def print_success(message, count):
-    print(f"\033[92m✔ {message} (Lần {count})\033[0m\n")  # Newline only on success
+    print(f"\033[92m✔ {message} (Lần {count})\033[0m")  # Loại bỏ \n để tránh dòng trống
 
 def countdown_with_spinner(seconds):
     spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
@@ -43,12 +43,12 @@ def countdown_with_spinner(seconds):
             )
             sys.stdout.flush()
             time.sleep(0.1)
+        sys.stdout.write("\r" + " " * 70 + "\r")
+        sys.stdout.flush()
     except KeyboardInterrupt:
         sys.stdout.write("\r" + " " * 70 + "\r")
         sys.stdout.flush()
         sys.exit(0)
-    sys.stdout.write("\r" + " " * 70 + "\r")
-    sys.stdout.flush()
 
 # Hiển thị banner chỉ một lần
 print_banner()
@@ -61,7 +61,7 @@ if not username:
 # Biến đếm số lần tăng follow thành công
 success_count = 0
 
-# ============= PHẦN CODE CHỨC NĂNG =============
+# ============= PHẦN CHỨC NĂNG =============
 while True:
     headers = {
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -103,8 +103,7 @@ while True:
             if send_follow.get('o') == 'Success!' and send_follow.get('success') == True and send_follow.get('type') == 'success':
                 success_count += 1
                 print_success('Tăng Follow TikTok thành công!', success_count)
-                countdown_from = 900
-                countdown_with_spinner(countdown_from)  # 15 phút
+                countdown_with_spinner(900)  # 15 phút
                 continue
             
             else:
@@ -112,15 +111,12 @@ while True:
                     thoigian = send_follow['message'].split('You need to wait for a new transaction. : ')[1].split('.')[0]
                     phut = thoigian.split(' Minutes')[0]
                     giay = int(phut) * 60
-                    countdown_from = giay
-                    countdown_with_spinner(countdown_from)
+                    countdown_with_spinner(giay)
                     continue
                 except:
-                    countdown_from = 30
-                    countdown_with_spinner(countdown_from)
+                    countdown_with_spinner(30)
                     continue
     
     except:
-        countdown_from = 30
-        countdown_with_spinner(countdown_from)
+        countdown_with_spinner(30)
         continue
