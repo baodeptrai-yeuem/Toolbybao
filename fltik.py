@@ -39,7 +39,7 @@ def countdown_with_spinner(seconds):
             mins, secs = divmod(remaining, 60)
             percentage = 100 - (remaining / seconds) * 100
             sys.stdout.write(
-                f"\r\033[93m{spinner[int(time.time() * 2) % len(spinner)]} Thời gian chờ: {mins:02d}:{secs:02d} | Hoàn thành: {percentage:.1f}%\033[0m"
+                f"\033[93m{spinner[int(time.time() * 2) % len(spinner)]} Thời gian chờ: {mins:02d}:{secs:02d} | Hoàn thành: {percentage:.1f}%\033[0m\r"
             )
             sys.stdout.flush()
             time.sleep(0.1)
