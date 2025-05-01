@@ -6,6 +6,7 @@ import threading
 import platform
 import subprocess
 import logging
+import sys
 try:
     import chromedriver_autoinstaller
     from selenium import webdriver
@@ -77,8 +78,9 @@ def is_termux():
     return "termux" in os.environ.get("SHELL", "").lower() or "com.termux" in os.environ.get("PREFIX", "").lower()
 
 def format_time(seconds):
-    """Định dạng thời gian từ giây sang HH:MM:SS."""
-    return time.strftime('%H:%M:%S', time.gmtime(seconds))
+    """Định dạng thời gian từ giây sang MM:SS."""
+    mins, secs = divmod(int(seconds), 60)
+    return f"{mins:02d}:{secs:02d}"
 
 def is_valid_tiktok_url(url, mode):
     """Kiểm tra xem URL có phải là URL TikTok hợp lệ không."""
@@ -90,46 +92,76 @@ def is_valid_tiktok_url(url, mode):
     return re.match(full_url_pattern, url) or re.match(short_url_pattern, url)
 
 def display_banner():
-    """Hiển thị banner chuyên nghiệp của BaoDz."""
-    banner = """
-    ╔══════════════════════════════════════════════════════╗
-    ║                   BaoDz Bot - TikTok                 ║
-    ║          Tăng Views, Hearts, Shares, Followers       ║
-    ║             Phiên bản: 1.0.0 | Tác giả: BaoDz        ║
-    ╚══════════════════════════════════════════════════════╝
+    """Hiển thị banner chuyên nghiệp."""
+    banner = f"""
+    {Fore.LIGHTWHITE_EX}   ██████╗  █████╗  ██████╗ ██████╗ ███████╗     {Fore.LIGHTMAGENTA_EX}
+    {Fore.LIGHTWHITE_EX}   ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗╚══███╔╝     {Fore.LIGHTMAGENTA_EX}
+    {Fore.LIGHTWHITE_EX}   ██████╔╝███████║██║   ██║██║  ██║  ███╔╝      {Fore.LIGHTMAGENTA_EX}
+    {Fore.LIGHTWHITE_EX}   ██╔══██╗██╔══██║██║   ██║██║  ██║ ███╔╝       {Fore.LIGHTMAGENTA_EX}
+    {Fore.LIGHTWHITE_EX}   ██████╔╝██║  ██║╚██████╔╝██████╔╝███████╗     {Fore.LIGHTMAGENTA_EX}
+    {Fore.LIGHTWHITE_EX}   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝     {Fore.LIGHTMAGENTA_EX}
+                                                       
+    {Fore.LIGHTCYAN_EX}       TIKTOK BOT - TĂNG TƯƠNG TÁC TỰ ĐỘNG       {Fore.LIGHTMAGENTA_EX}
+    {Fore.LIGHTWHITE_EX}       Phiên bản: 1.0.0 | Phát triển: BaoDz       {Fore.LIGHTMAGENTA_EX}
     """
-    print(Fore.LIGHTCYAN_EX + banner + Style.RESET_ALL)
+    print(banner)
 
 def display_menu(available_modes, mode_status):
-    """Hiển thị menu lựa chọn chế độ với trạng thái màu sắc."""
-    clear_screen()
-    display_banner()
-
-    box_width = 45  # Chiều rộng khung phù hợp với nội dung
-    title = "Chọn Chế Độ"
-    padding = (box_width - len(title) - 2) // 2
-
-    print(f"{Fore.LIGHTCYAN_EX}┌{'─' * padding} {title} {'─' * (box_width - len(title) - padding - 2)}┐{Style.RESET_ALL}")
-
+    """Hiển thị menu mới đẹp hơn, xóa màn hình trước khi hiển thị."""
+    clear_screen()  # Xóa màn hình trước khi hiển thị menu
+    print(f"\n{Fore.CYAN}╭{'─' * 40}╮")
+    print(f"│{Fore.WHITE}TIKTOK BOT - CHỌN CHẾ ĐỘ TĂNG TƯƠNG TÁC {Fore.CYAN}│")
+    print(f"╰{'─' * 40}╯{Style.RESET_ALL}")
+    
     for i, mode in enumerate(available_modes, 1):
-        mode_vn = {
-            "Hearts": "Lượt Thích", "Views": "Lượt Xem", "Shares": "Lượt Chia Sẻ",
-            "Favorites": "Lượt Yêu Thích", "Live Stream": "Live Stream",
-            "Followers": "Lượt Follow"
-        }.get(mode, mode)
+        icon = {
+            "Hearts": "❤️", "Views": "👁️", "Shares": "↗️",
+            "Favorites": "⭐", "Followers": "👥", "Live Stream": "📹"
+        }.get(mode, "")
+        
+        status = mode_status.get(mode)
+        status_text = "Active" if status == "Active" else "Stop"
+        status_color = Fore.GREEN if status == "Active" else Fore.RED
+        
+        print(f" {Fore.WHITE}{i:>2}. {mode:<15} {icon} {status_color}{status_text}{Style.RESET_ALL}")
+    
+    while True:
+        try:
+            print(f"\n{Fore.CYAN}┌{'─' * 20}┐")
+            choice = input(f"{Fore.CYAN}│{Fore.WHITE} Chọn chế độ (1-{len(available_modes)}): {Fore.CYAN}│\n{Fore.CYAN}└{'─' * 20}┘\n{Fore.WHITE}➜ {Style.RESET_ALL}")
+            
+            if not choice.isdigit():
+                raise ValueError
+            
+            mode_choice = int(choice)
+            if 1 <= mode_choice <= len(available_modes):
+                selected_mode = available_modes[mode_choice - 1]
+                if mode_status.get(selected_mode) == "Stop":
+                    print(f"\n{Fore.RED}⚠ Chế độ này tạm ngừng hoạt động. Vui lòng chọn chế độ khác.{Style.RESET_ALL}")
+                    time.sleep(2)  # Đợi 2 giây để người dùng đọc thông báo
+                    return display_menu(available_modes, mode_status)  # Gọi lại menu
+                return selected_mode
+            print(f"\n{Fore.RED}⚠ Vui lòng nhập số từ 1 đến {len(available_modes)}{Style.RESET_ALL}")
+        except ValueError:
+            print(f"\n{Fore.RED}⚠ Lỗi: Vui lòng nhập số hợp lệ{Style.RESET_ALL}")
 
-        status = mode_status.get(mode, "Stop")
-        color = Fore.LIGHTGREEN_EX if status == "Active" else Fore.RED
-        status_text = "Active" if status == "Active" else "Stopped"
-
-        content = f"{i}. {mode_vn:<25} ({status_text})"
-        print(f"{color}│ {content:<41}│{Style.RESET_ALL}")  # 41 = 45 - 4
-
-    print(f"{Fore.LIGHTCYAN_EX}└{'─' * box_width}┘{Style.RESET_ALL}")
-    print(f"  {Fore.WHITE}│ Nhập số chế độ: {Style.RESET_ALL}", end="")  # Tụt vào 2 gạch
-
-
-
+def get_input(prompt, mode=""):
+    """Hiển thị ô nhập liệu đẹp hơn"""
+    icons = {
+        "URL": "🌐",
+        "Hearts": "❤️", 
+        "Views": "👁️", 
+        "Shares": "↗️",
+        "Favorites": "⭐", 
+        "Followers": "👥"
+    }
+    icon = icons.get(mode, "✏️")
+    prompt_width = len(prompt) + 12
+    
+    print(f"\n{Fore.CYAN}┌{'─' * prompt_width}┐")
+    print(f"│ {icon} {Fore.WHITE}{prompt}{Fore.CYAN} │")
+    print(f"└{'─' * prompt_width}╯")
+    return input(f"{Fore.WHITE}➜ {Style.RESET_ALL}").strip()
 
 class Bot:
     def __init__(self):
@@ -142,6 +174,8 @@ class Bot:
         self.followers = 0
         self.start_time = time.time()
         self.success_count = 0
+        self.last_update_time = time.time()
+        self.last_action = time.time()
 
     def check_api_status(self):
         """Kiểm tra trạng thái API của tất cả các chế độ."""
@@ -202,8 +236,7 @@ class Bot:
             for attempt in range(3):
                 try:
                     captcha_img_tag = WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.XPATH, '//img[@class="img-thumbnail card-img-top border-0"]'))
-                    )
+                        EC.presence_of_element_located((By.XPATH, '//img[@class="img-thumbnail card-img-top border-0"]')))
                     captcha_img_tag.screenshot('captcha.png')
                     log_message("Đã lưu CAPTCHA thành captcha.png", Fore.LIGHTGREEN_EX)
                     if is_termux():
@@ -215,19 +248,17 @@ class Bot:
                         log_message(f"Văn bản phía trên CAPTCHA: {above_text}", Fore.LIGHTYELLOW_EX)
                     except:
                         log_message("", Fore.LIGHTYELLOW_EX)
-                    captcha_text = input(f"{Fore.WHITE}Nhập mã CAPTCHA: {Style.RESET_ALL}")
+                    captcha_text = input(f"{Fore.WHITE}👉 Nhập mã CAPTCHA: {Style.RESET_ALL}")
                     if not captcha_text:
                         log_message("Chưa nhập mã CAPTCHA.", Fore.RED)
                         continue
                     input_field = WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.XPATH, '//input[@class="form-control form-control-lg text-center rounded-0 remove-spaces"]'))
-                    )
+                        EC.presence_of_element_located((By.XPATH, '//input[@class="form-control form-control-lg text-center rounded-0 remove-spaces"]')))
                     input_field.clear()
                     input_field.send_keys(captcha_text)
                     try:
                         submit_button = WebDriverWait(self.driver, 5).until(
-                            EC.element_to_be_clickable((By.XPATH, '//button[@type="submit"]'))
-                        )
+                            EC.element_to_be_clickable((By.XPATH, '//button[@type="submit"]')))
                         submit_button.click()
                     except:
                         log_message("Không tìm thấy hoặc không cần nút gửi.", Fore.LIGHTYELLOW_EX)
@@ -261,16 +292,33 @@ class Bot:
         log_message(f"Không thể phân tích thời gian chờ: {text}", Fore.RED)
         return 0
 
+    def update_progress(self, mode, increment):
+        """Hiển thị tiến trình với thông tin đã tăng thành công và tổng số."""
+        total = getattr(self, f"{mode.lower()}")
+        elapsed = int(time.time() - self.start_time)
+        
+        # Hiển thị tiến trình và xuống dòng ngay
+        progress_line = f"{Fore.LIGHTGREEN_EX}✅ Đã tăng: +{increment} {mode} | Tổng: {total} | Thời gian chạy: {format_time(elapsed)}{Style.RESET_ALL}"
+        print(progress_line)  # In và tự động xuống dòng
+
     def wait_with_countdown(self, wait_seconds):
-        """Chờ với bộ đếm ngược thời gian thực."""
+        """Chờ với bộ đếm ngược thời gian thực, hiển thị ngay dưới thông báo trước đó."""
+        spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
         start_wait = time.time()
         while time.time() - start_wait < wait_seconds and self.running:
-            elapsed = time.time() - self.start_time
-            remaining = int(wait_seconds - (time.time() - start_wait))
-            future_time = format_time(elapsed + remaining)
-            print(f"\r{Fore.LIGHTCYAN_EX}Thời gian chạy: {format_time(elapsed)} | Chờ: {Fore.WHITE}{remaining}s (đến {future_time})){Style.RESET_ALL}", end='')
-            time.sleep(1)
-        print()
+            elapsed = time.time() - start_wait
+            remaining = max(0, wait_seconds - elapsed)
+            percent = (elapsed / wait_seconds) * 100
+            mins, secs = divmod(int(remaining), 60)
+            
+            # Hiển thị bộ đếm ngược ngay dưới thông báo trước đó
+            countdown_line = f"{Fore.LIGHTYELLOW_EX}{spinner[int(time.time() * 2) % len(spinner)]} Chờ: {mins:02d}:{secs:02d} | Hoàn thành: {percent:.1f}%{Style.RESET_ALL}"
+            sys.stdout.write(f"\r{countdown_line}")
+            sys.stdout.flush()
+            time.sleep(0.1)
+        # Xóa dòng bộ đếm ngược
+        sys.stdout.write("\r" + " " * 70 + "\r")
+        sys.stdout.flush()
 
     def increment_mode_count(self, mode):
         """Tăng số lượng tương ứng với chế độ."""
@@ -294,25 +342,6 @@ class Bot:
             self.followers += increment
             return increment
         return 0
-
-    def display_total(self, mode, increment):
-        """Hiển thị số lượng vừa thêm và tổng số trên cùng một dòng."""
-        mode_vn = {"Hearts": "Lượt Thích", "Views": "Lượt Xem", "Shares": "Lượt Chia Sẻ", 
-                   "Favorites": "Lượt Yêu Thích", "Live Stream": "Live Stream", 
-                   "Followers": "Lượt Follow"}.get(mode, mode)
-        if mode == "Views":
-            total = self.views
-        elif mode == "Hearts":
-            total = self.hearts
-        elif mode == "Shares":
-            total = self.shares
-        elif mode == "Favorites":
-            total = self.favorites
-        elif mode == "Followers":
-            total = self.followers
-        else:
-            total = 0
-        return f"Thành công: Đã thêm {increment} {mode_vn} | Tổng số {mode_vn}: {total}"
 
     def loop(self, vidUrl, mode, amount):
         data = {
@@ -345,7 +374,7 @@ class Bot:
                 "Input": '/html/body/div[12]/div/form/div/input',
                 "Send": '/html/body/div[12]/div/div/div[1]/div/form/button',
                 "Search": '/html/body/div[12]/div/form/div/div/button',
-                "TextBeforeSend": '/html/body/div[12]/div/div/span',
+                "TextBeforeSend": '/html/body/div[12]/div/div/maxspan',
                 "TextAfterSend": '/html/body/div[12]/div/div/span[1]'
             },
             "Followers": {
@@ -400,28 +429,33 @@ class Bot:
                 wait_seconds = self.parse_wait_time(wait_text)
                 increment = self.increment_mode_count(mode)
                 self.success_count += 1
-                success_message = self.display_total(mode, increment)
-                log_message(success_message, Fore.LIGHTGREEN_EX)
+                self.last_action = time.time()
+                self.update_progress(mode, increment)  # Hiển thị tiến trình và xuống dòng
+                self.wait_with_countdown(wait_seconds)  # Hiển thị bộ đếm ngay dưới
 
                 if self.success_count >= 4:
-                    log_message("Đã gửi 4 lần. Nghỉ 10 phút...", Fore.LIGHTYELLOW_EX)
                     rest_time = 600
                     start_rest = time.time()
                     while time.time() - start_rest < rest_time and self.running:
                         remaining = int(rest_time - (time.time() - start_rest))
-                        print(f"\r{Fore.LIGHTYELLOW_EX}Đang nghỉ: Còn {format_time(remaining)}{Style.RESET_ALL}", end='')
-                        time.sleep(1)
-                    print()
+                        percent = (1 - remaining / rest_time) * 100
+                        mins, secs = divmod(remaining, 60)
+                        # Hiển thị nghỉ ngay dưới thông báo tăng cuối
+                        rest_line = f"{Fore.LIGHTYELLOW_EX}🛑 Nghỉ: {mins:02d}:{secs:02d} | Hoàn thành: {percent:.1f}%{Style.RESET_ALL}"
+                        sys.stdout.write(f"\r{rest_line}")
+                        sys.stdout.flush()
+                        time.sleep(0.1)
+                    # Xóa dòng nghỉ
+                    sys.stdout.write("\r" + " " * 70 + "\r")
+                    sys.stdout.flush()
                     self.success_count = 0
-
-                self.wait_with_countdown(wait_seconds)
 
                 if (mode == "Views" and self.views >= amount) or \
                    (mode == "Hearts" and self.hearts >= amount) or \
                    (mode == "Shares" and self.shares >= amount) or \
                    (mode == "Favorites" and self.favorites >= amount) or \
                    (mode == "Followers" and self.followers >= amount):
-                    log_message(f"Đã đạt giới hạn {mode_vn}: {amount}", Fore.LIGHTYELLOW_EX)
+                    log_message(f"🎉 Đã đạt mục tiêu {mode}!", Fore.LIGHTGREEN_EX)
                     self.running = False
                     break
             except Exception as e:
@@ -440,7 +474,7 @@ class Bot:
 def main():
     clear_screen()
     display_banner()
-    loading_animation("Đang khởi động")
+    loading_animation("Đang khởi động hệ thống")
     bot = Bot()
     result = bot.setup_bot()
     if not result:
@@ -448,40 +482,34 @@ def main():
     available_modes, mode_status = result
 
     while True:
-        display_menu(available_modes, mode_status)
-        try:
-            mode_choice = int(input())
-            if 1 <= mode_choice <= len(available_modes):
-                mode = available_modes[mode_choice - 1]
-                mode_vn = {"Hearts": "Lượt Thích", "Views": "Lượt Xem", "Shares": "Lượt Chia Sẻ", 
-                           "Favorites": "Lượt Yêu Thích", "Live Stream": "Live Stream", 
-                           "Followers": "Lượt Follow"}.get(mode, mode)
-                if mode_status.get(mode) == "Stop":
-                    log_message(f"Chế độ {mode_vn} hiện không khả dụng (Stopped due to out of API). Vui lòng chọn chế độ khác.", Fore.RED)
-                    continue
-            else:
-                log_message(f"│ Lựa chọn không hợp lệ. Vui lòng chọn số từ 1 đến {len(available_modes)}.", Fore.RED)
-                continue
-        except ValueError:
-            log_message("│ Vui lòng nhập một số hợp lệ.", Fore.RED)
+        mode = display_menu(available_modes, mode_status)
+        if not mode:
             continue
 
-        print(f"{Fore.LIGHTCYAN_EX}══════════════════════════════════════════════{Style.RESET_ALL}")
-        url_prompt = "Nhập URL profile TikTok: " if mode == "Followers" else "Nhập URL video TikTok: "
-        print(f"{Fore.WHITE}{url_prompt}{Style.RESET_ALL}", end="")
-        vid_url = input().strip()
+        mode_vn = {
+            "Hearts": "Lượt Thích ❤️", 
+            "Views": "Lượt Xem 👁️", 
+            "Shares": "Lượt Chia Sẻ ↗️",
+            "Favorites": "Lượt Yêu Thích ⭐", 
+            "Followers": "Lượt Follow 👥"
+        }.get(mode, mode)
+
+        # Nhập URL
+        url_prompt = "Nhập URL profile TikTok" if mode == "Followers" else "Nhập URL video TikTok"
+        vid_url = get_input(url_prompt, "URL")
         if not is_valid_tiktok_url(vid_url, mode):
             log_message("URL TikTok không hợp lệ. Vui lòng nhập URL video hoặc profile TikTok hợp lệ.", Fore.RED)
             continue
-        print(f"{Fore.WHITE}Nhập số lượng {mode_vn}: {Style.RESET_ALL}", end="")
+
+        # Nhập số lượng
         try:
-            amount = int(input())
+            amount = int(get_input(f"Nhập số lượng {mode_vn}", mode))
+            setattr(bot, f"target_{mode.lower()}", amount)  # Lưu mục tiêu
         except ValueError:
             log_message("Số lượng phải là một số.", Fore.RED)
             continue
-        print(f"{Fore.LIGHTCYAN_EX}══════════════════════════════════════════════{Style.RESET_ALL}")
 
-        print(f"{Fore.LIGHTGREEN_EX}Bắt đầu tăng {mode_vn}...{Style.RESET_ALL}")
+        print(f"{Fore.LIGHTGREEN_EX}🚀 Bắt đầu tăng {mode_vn}...{Style.RESET_ALL}")
         bot.running = True
         bot.start_time = time.time()
         bot.views = 0
@@ -498,23 +526,25 @@ def main():
             while bot.running:
                 time.sleep(1)
         except KeyboardInterrupt:
-            log_message("Đang dừng bot...", Fore.LIGHTYELLOW_EX)
+            log_message("🛑 Đang dừng bot...", Fore.LIGHTYELLOW_EX)
             bot.stop()
             bot_thread.join()
-            log_message("Bot đã dừng.", Fore.LIGHTGREEN_EX)
-            print(f"{Fore.LIGHTCYAN_EX}══════════════════════════════════════════════{Style.RESET_ALL}")
-            print(f"{Fore.WHITE}Nhập URL TikTok mới: {Style.RESET_ALL}", end="")
-            new_url = input().strip()
-            print(f"{Fore.LIGHTCYAN_EX}══════════════════════════════════════════════{Style.RESET_ALL}")
+            log_message("✅ Bot đã dừng thành công.", Fore.LIGHTGREEN_EX)
+            print(f"{Fore.LIGHTMAGENTA_EX}╔{'═' * 50}╗{Style.RESET_ALL}")
+            print(f"{Fore.LIGHTMAGENTA_EX}║ {Fore.LIGHTWHITE_EX}👉 Nhập URL TikTok mới hoặc 'exit' để thoát: {Style.RESET_ALL}", end="")
+            new_url = input().strip().lower()
+            print(f"{Fore.LIGHTMAGENTA_EX}╚{'═' * 50}╝{Style.RESET_ALL}")
+            if new_url == 'exit':
+                break
             if not is_valid_tiktok_url(new_url, mode):
                 log_message("URL TikTok không hợp lệ. Vui lòng nhập URL video hoặc profile TikTok hợp lệ.", Fore.RED)
                 continue
             vid_url = new_url
-            available_modes, mode_status = bot.check_api_status()  # Cập nhật trạng thái API
+            available_modes, mode_status = bot.check_api_status()
             continue
 
         bot_thread.join()
-        log_message("Cảm ơn bạn đã sử dụng BaoDz Zefoy Bot!", Fore.LIGHTGREEN_EX)
+        log_message(f"{Fore.LIGHTGREEN_EX}🎉 Hoàn thành! Cảm ơn bạn đã sử dụng BaoDz Bot!{Style.RESET_ALL}")
         break
 
 if __name__ == "__main__":
