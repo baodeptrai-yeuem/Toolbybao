@@ -28,7 +28,7 @@ def print_banner():
     print(f"\033[93m⏰ Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\033[0m\n")
 
 def print_success(message, count):
-    print(f"\033[92m✔ {message} (Lần {count})\033[0m")
+    print(f"\033[92m✔ {message} (Lần {count})\033[0m\n")  # Newline only on success
 
 def countdown_with_spinner(seconds):
     spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
