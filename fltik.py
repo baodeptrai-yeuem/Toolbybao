@@ -3,6 +3,7 @@ import time
 import os
 import sys
 from datetime import datetime
+import shutil  # Thêm import shutil để lấy kích thước terminal
 
 # Clear screen for a clean interface
 os.system('cls' if os.name == 'nt' else 'clear')
@@ -28,7 +29,7 @@ def print_banner():
     print(f"\033[93m⏰ Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\033[0m\n")
 
 def print_success(message, count):
-    print(f"\033[92m✔ {message} (Lần {count})\033[0m")  # Loại bỏ \n để tránh dòng trống
+    print(f"\033[92m✔ {message} (Lần {count})\033[0m")
 
 def countdown_with_spinner(seconds):
     spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
@@ -43,10 +44,13 @@ def countdown_with_spinner(seconds):
             )
             sys.stdout.flush()
             time.sleep(0.1)
-        sys.stdout.write("\r" + " " * 70 + "\r")
+        # Lấy chiều rộng terminal và xóa dòng dựa trên chiều rộng đó
+        terminal_width = shutil.get_terminal_size().columns
+        sys.stdout.write("\r" + " " * terminal_width + "\r")
         sys.stdout.flush()
     except KeyboardInterrupt:
-        sys.stdout.write("\r" + " " * 70 + "\r")
+        terminal_width = shutil.get_terminal_size().columns
+        sys.stdout.write("\r" + " " * terminal_width + "\r")
         sys.stdout.flush()
         sys.exit(0)
 
