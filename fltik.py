@@ -4,33 +4,28 @@ import os
 import sys
 from datetime import datetime
 import shutil
-from colorama import Fore, init
 
-# Khởi tạo colorama
-init()
-
-# Clear screen
+# Clear screen for a clean interface
 os.system('cls' if os.name == 'nt' else 'clear')
 
 # ============= PHẦN GIAO DIỆN =============
 def banner():
-    """Hiển thị banner chuyên nghiệp."""
     b = f"""
-    {Fore.LIGHTWHITE_EX}   ██████╗  █████╗  ██████╗ ██████╗ ███████╗     {Fore.LIGHTMAGENTA_EX}
-    {Fore.LIGHTWHITE_EX}   ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗╚══███╔╝     {Fore.LIGHTMAGENTA_EX}
-    {Fore.LIGHTWHITE_EX}   ██████╔╝███████║██║   ██║██║  ██║  ███╔╝      {Fore.LIGHTMAGENTA_EX}
-    {Fore.LIGHTWHITE_EX}   ██╔══██╗██╔══██║██║   ██║██║  ██║ ███╔╝       {Fore.LIGHTMAGENTA_EX}
-    {Fore.LIGHTWHITE_EX}   ██████╔╝██║  ██║╚██████╔╝██████╔╝███████╗     {Fore.LIGHTMAGENTA_EX}
-    {Fore.LIGHTWHITE_EX}   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝     {Fore.LIGHTMAGENTA_EX}
+    \033[97m   ██████╗  █████╗  ██████╗ ██████╗ ███████╗     \033[95m
+    \033[97m   ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗╚══███╔╝     \033[95m
+    \033[97m   ██████╔╝███████║██║   ██║██║  ██║  ███╔╝      \033[95m
+    \033[97m   ██╔══██╗██╔══██║██║   ██║██║  ██║ ███╔╝       \033[95m
+    \033[97m   ██████╔╝██║  ██║╚██████╔╝██████╔╝███████╗     \033[95m
+    \033[97m   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝     \033[95m
 
-    {Fore.LIGHTCYAN_EX}   TooL Tích Hợp  - TĂNG TƯƠNG TÁC TỰ ĐỘNG       {Fore.LIGHTMAGENTA_EX}
-    {Fore.LIGHTWHITE_EX}   Phiên bản: 1.0.0 | Phát triển: B05 - TooL    {Fore.LIGHTMAGENTA_EX}
-    {Fore.YELLOW}       ⏰ Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
+    \033[96m   TooL Tích Hợp  - TĂNG TƯƠNG TÁC TỰ ĐỘNG       \033[95m
+    \033[97m   Phiên bản: 1.0.0 | Phát triển: B05 - TooL    \033[95m
+    \033[93m       ⏰ Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
     """
     print(b)
 
 def print_success(message, count):
-    print(f"\033[92m✔ {message} (Lần {count})\033[0m")  # Chỉ in một lần
+    print(f"\033[92m✔ {message} (Lần {count})\033[0m")
 
 def countdown_with_spinner(seconds):
     spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
@@ -54,16 +49,15 @@ def countdown_with_spinner(seconds):
         sys.stdout.flush()
         sys.exit(0)
 
-# Hiển thị banner
+# Hiển thị banner chỉ một lần
 banner()
 
-# Nhập username
+# Nhập username chỉ một lần trước vòng lặp
 username = input('\033[94mNhập Username TikTok (không cần @): \033[0m').strip()
 if not username:
-    print("\033[91mLỗi: Vui lòng nhập username!\033[0m")
     sys.exit(1)
 
-# Biến đếm
+# Biến đếm số lần tăng follow thành công
 success_count = 0
 
 # ============= PHẦN CHỨC NĂNG =============
@@ -84,11 +78,9 @@ while True:
     }
 
     try:
-        # Gửi yêu cầu để lấy session và token
-        access = requests.get('https://tikfollowers.com/free-tiktok-followers', headers=headers, timeout=10)
+        access = requests.get('https://tikfollowers.com/free-tiktok-followers', headers=headers)
         session = access.cookies.get('ci_session')
         if not session:
-            print("\033[91mKhông thể lấy session, thử lại sau 30s...\033[0m")
             countdown_with_spinner(30)
             continue
 
@@ -96,37 +88,30 @@ while True:
         token = access.text.split("csrf_token = '")[1].split("'")[0]
         data = '{"type":"follow","q":"@' + username + '","google_token":"t","token":"' + token + '"}'
 
-        # Gửi yêu cầu tìm kiếm
-        search = requests.post('https://tikfollowers.com/api/free', headers=headers, data=data, timeout=10).json()
+        search = requests.post('https://tikfollowers.com/api/free', headers=headers, data=data).json()
 
         if search.get('success') == True:
             data_follow = search['data']
             data = '{"google_token":"t","token":"' + token + '","data":"' + data_follow + '","type":"follow"}'
 
-            # Gửi yêu cầu tăng follow
-            send_follow = requests.post('https://tikfollowers.com/api/free/send', headers=headers, data=data, timeout=10).json()
+            send_follow = requests.post('https://tikfollowers.com/api/free/send', headers=headers, data=data).json()
 
             if send_follow.get('o') == 'Success!' and send_follow.get('success') == True and send_follow.get('type') == 'success':
                 success_count += 1
                 print_success('Tăng Follow TikTok thành công!', success_count)
                 countdown_with_spinner(900)  # 15 phút
+                continue
             else:
                 try:
                     thoigian = send_follow['message'].split('You need to wait for a new transaction. : ')[1].split('.')[0]
                     phut = thoigian.split(' Minutes')[0]
                     giay = int(phut) * 60
-                    print(f"\033[93mPhải chờ {phut} phút...\033[0m")
                     countdown_with_spinner(giay)
+                    continue
                 except:
-                    print("\033[91mLỗi không xác định, thử lại sau 30s...\033[0m")
                     countdown_with_spinner(30)
-        else:
-            print("\033[91mYêu cầu tìm kiếm thất bại, thử lại sau 30s...\033[0m")
-            countdown_with_spinner(30)
+                    continue
 
-    except requests.RequestException as e:
-        print(f"\033[91mLỗi kết nối: {str(e)}, thử lại sau 30s...\033[0m")
+    except:
         countdown_with_spinner(30)
-    except Exception as e:
-        print(f"\033[91mLỗi không mong muốn: {str(e)}, thử lại sau 30s...\033[0m")
-        countdown_with_spinner(30)
+        continue
