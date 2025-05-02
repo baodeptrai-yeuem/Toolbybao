@@ -30,6 +30,17 @@ except ImportError as e:
 # Khởi tạo colorama
 init(autoreset=True)
 
+def loading_animation(message, duration=2):
+    """Hiển thị hiệu ứng loading với dấu chấm động."""
+    frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+    end_time = time.time() + duration
+    i = 0
+    while time.time() < end_time:
+        print(f"\r{Fore.LIGHTYELLOW_EX}{frames[i % len(frames)]} ⏳ {message}{Style.RESET_ALL}", end="")
+        i += 1
+        time.sleep(0.1)
+    print()
+
 # Tắt log của Selenium, ChromeDriver và urllib3
 logging.getLogger('selenium').setLevel(logging.CRITICAL)
 logging.getLogger('webdriver').setLevel(logging.CRITICAL)
