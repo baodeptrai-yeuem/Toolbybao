@@ -3,13 +3,13 @@ import time
 import os
 import sys
 from datetime import datetime
-import shutil  # Thêm import shutil để lấy kích thước terminal
-from colorama import Fore, init  # Thêm colorama để dùng Fore
+import shutil
+from colorama import Fore, init
 
 # Khởi tạo colorama
 init()
 
-# Clear screen for a clean interface
+# Clear screen
 os.system('cls' if os.name == 'nt' else 'clear')
 
 # ============= PHẦN GIAO DIỆN =============
@@ -30,8 +30,7 @@ def banner():
     print(b)
 
 def print_success(message, count):
-    print(f"\033[92m✔ {message} (Lần {count})\033[0m")  # Loại bỏ \n để tránh dòng trống
-    print(f"\033[92m✔ {message} (Lần {count})\033[0m")
+    print(f"\033[92m✔ {message} (Lần {count})\033[0m")  # Chỉ in một lần
 
 def countdown_with_spinner(seconds):
     spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
@@ -46,27 +45,25 @@ def countdown_with_spinner(seconds):
             )
             sys.stdout.flush()
             time.sleep(0.1)
-        sys.stdout.write("\r" + " " * 70 + "\r")
-        # Lấy chiều rộng terminal và xóa dòng dựa trên chiều rộng đó
         terminal_width = shutil.get_terminal_size().columns
         sys.stdout.write("\r" + " " * terminal_width + "\r")
         sys.stdout.flush()
     except KeyboardInterrupt:
-        sys.stdout.write("\r" + " " * 70 + "\r")
         terminal_width = shutil.get_terminal_size().columns
         sys.stdout.write("\r" + " " * terminal_width + "\r")
         sys.stdout.flush()
         sys.exit(0)
 
-# Hiển thị banner chỉ một lần
+# Hiển thị banner
 banner()
 
-# Nhập username chỉ một lần trước vòng lặp
+# Nhập username
 username = input('\033[94mNhập Username TikTok (không cần @): \033[0m').strip()
 if not username:
+    print("\033[91mLỗi: Vui lòng nhập username!\033[0m")
     sys.exit(1)
 
-# Biến đếm số lần tăng follow thành công
+# Biến đếm
 success_count = 0
 
 # ============= PHẦN CHỨC NĂNG =============
@@ -88,9 +85,10 @@ while True:
 
     try:
         # Gửi yêu cầu để lấy session và token
-        access = requests.get('https://tikfollowers.com/free-tiktok-followers', headers=headers)
+        access = requests.get('https://tikfollowers.com/free-tiktok-followers', headers=headers, timeout=10)
         session = access.cookies.get('ci_session')
         if not session:
+            print("\033[91mKhông thể lấy session, thử lại sau 30s...\033[0m")
             countdown_with_spinner(30)
             continue
 
@@ -99,32 +97,36 @@ while True:
         data = '{"type":"follow","q":"@' + username + '","google_token":"t","token":"' + token + '"}'
 
         # Gửi yêu cầu tìm kiếm
-        search = requests.post('https://tikfollowers.com/api/free', headers=headers, data=data).json()
+        search = requests.post('https://tikfollowers.com/api/free', headers=headers, data=data, timeout=10).json()
 
         if search.get('success') == True:
             data_follow = search['data']
             data = '{"google_token":"t","token":"' + token + '","data":"' + data_follow + '","type":"follow"}'
 
             # Gửi yêu cầu tăng follow
-            send_follow = requests.post('https://tikfollowers.com/api/free/send', headers=headers, data=data).json()
+            send_follow = requests.post('https://tikfollowers.com/api/free/send', headers=headers, data=data, timeout=10).json()
 
             if send_follow.get('o') == 'Success!' and send_follow.get('success') == True and send_follow.get('type') == 'success':
                 success_count += 1
                 print_success('Tăng Follow TikTok thành công!', success_count)
                 countdown_with_spinner(900)  # 15 phút
-                continue
-
             else:
                 try:
                     thoigian = send_follow['message'].split('You need to wait for a new transaction. : ')[1].split('.')[0]
                     phut = thoigian.split(' Minutes')[0]
                     giay = int(phut) * 60
+                    print(f"\033[93mPhải chờ {phut} phút...\033[0m")
                     countdown_with_spinner(giay)
-                    continue
                 except:
+                    print("\033[91mLỗi không xác định, thử lại sau 30s...\033[0m")
                     countdown_with_spinner(30)
-                    continue
+        else:
+            print("\033[91mYêu cầu tìm kiếm thất bại, thử lại sau 30s...\033[0m")
+            countdown_with_spinner(30)
 
-    except:
+    except requests.RequestException as e:
+        print(f"\033[91mLỗi kết nối: {str(e)}, thử lại sau 30s...\033[0m")
         countdown_with_spinner(30)
-        continue
+    except Exception as e:
+        print(f"\033[91mLỗi không mong muốn: {str(e)}, thử lại sau 30s...\033[0m")
+        countdown_with_spinner(30)
