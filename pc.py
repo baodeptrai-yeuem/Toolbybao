@@ -16,6 +16,7 @@ try:
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
     from PIL import Image
+    from datetime import datetime
     from colorama import init, Fore, Style
     import customtkinter as ctk
     import tkinter as tk
@@ -43,6 +44,17 @@ def clear_screen():
 def log_message(message, color=Fore.WHITE):
     """Hiển thị thông báo với màu sắc được chỉ định."""
     print(f"{color}{message}{Style.RESET_ALL}")
+
+def loading_animation(message, duration=2):
+    """Hiển thị hiệu ứng loading với dấu chấm động."""
+    frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+    end_time = time.time() + duration
+    i = 0
+    while time.time() < end_time:
+        print(f"\r{Fore.LIGHTYELLOW_EX}{frames[i % len(frames)]} ⏳ {message}{Style.RESET_ALL}", end="")
+        i += 1
+        time.sleep(0.1)
+    print()
 
 def open_image_in_termux(file_path):
     """Mở hình ảnh trong Termux bằng termux-open."""
@@ -80,20 +92,21 @@ def is_valid_tiktok_url(url, mode):
         return re.match(profile_url_pattern, url)
     return re.match(full_url_pattern, url) or re.match(short_url_pattern, url)
 
-def display_banner():
+def banner():
     """Hiển thị banner chuyên nghiệp."""
-    banner = f"""
+    b = f"""
     {Fore.LIGHTWHITE_EX}   ██████╗  █████╗  ██████╗ ██████╗ ███████╗     {Fore.LIGHTMAGENTA_EX}
     {Fore.LIGHTWHITE_EX}   ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗╚══███╔╝     {Fore.LIGHTMAGENTA_EX}
     {Fore.LIGHTWHITE_EX}   ██████╔╝███████║██║   ██║██║  ██║  ███╔╝      {Fore.LIGHTMAGENTA_EX}
     {Fore.LIGHTWHITE_EX}   ██╔══██╗██╔══██║██║   ██║██║  ██║ ███╔╝       {Fore.LIGHTMAGENTA_EX}
     {Fore.LIGHTWHITE_EX}   ██████╔╝██║  ██║╚██████╔╝██████╔╝███████╗     {Fore.LIGHTMAGENTA_EX}
     {Fore.LIGHTWHITE_EX}   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝     {Fore.LIGHTMAGENTA_EX}
-                                                       
+
     {Fore.LIGHTCYAN_EX}   TooL Tích Hợp  - TĂNG TƯƠNG TÁC TỰ ĐỘNG       {Fore.LIGHTMAGENTA_EX}
-    {Fore.LIGHTWHITE_EX}   Phiên bản: 1.0.0 | Phát triển: B05 -TooL       {Fore.LIGHTMAGENTA_EX}
+    {Fore.LIGHTWHITE_EX}   Phiên bản: 1.0.0 | Phát triển: B05 - TooL    {Fore.LIGHTMAGENTA_EX}
+    {Fore.YELLOW}       ⏰ Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
     """
-    print(banner)
+    print(b)
 
 def display_menu(available_modes, mode_status):
     """Hiển thị menu mới đẹp hơn, xóa màn hình trước khi hiển thị."""
@@ -422,23 +435,6 @@ class Bot:
                 self.update_progress(mode, increment)  # Hiển thị tiến trình và xuống dòng
                 self.wait_with_countdown(wait_seconds)  # Hiển thị bộ đếm ngay dưới
 
-                if self.success_count >= 4:
-                    rest_time = 600
-                    start_rest = time.time()
-                    while time.time() - start_rest < rest_time and self.running:
-                        remaining = int(rest_time - (time.time() - start_rest))
-                        percent = (1 - remaining / rest_time) * 100
-                        mins, secs = divmod(remaining, 60)
-                        # Hiển thị nghỉ ngay dưới thông báo tăng cuối
-                        rest_line = f"{Fore.LIGHTYELLOW_EX}🛑 Nghỉ: {mins:02d}:{secs:02d} | Hoàn thành: {percent:.1f}%{Style.RESET_ALL}"
-                        sys.stdout.write(f"\r{rest_line}")
-                        sys.stdout.flush()
-                        time.sleep(0.1)
-                    # Xóa dòng nghỉ
-                    sys.stdout.write("\r" + " " * 70 + "\r")
-                    sys.stdout.flush()
-                    self.success_count = 0
-
                 if (mode == "Views" and self.views >= amount) or \
                    (mode == "Hearts" and self.hearts >= amount) or \
                    (mode == "Shares" and self.shares >= amount) or \
@@ -462,7 +458,7 @@ class Bot:
 
 def main():
     clear_screen()
-    display_banner()
+    banner()
     loading_animation("Đang khởi động hệ thống")
     bot = Bot()
     result = bot.setup_bot()
