@@ -16,6 +16,7 @@ try:
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
     from PIL import Image
+    from datetime import datetime
     from colorama import init, Fore, Style
     import customtkinter as ctk
     import tkinter as tk
@@ -29,17 +30,6 @@ except ImportError as e:
 
 # Khởi tạo colorama
 init(autoreset=True)
-
-def loading_animation(message, duration=2):
-    """Hiển thị hiệu ứng loading với dấu chấm động."""
-    frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
-    end_time = time.time() + duration
-    i = 0
-    while time.time() < end_time:
-        print(f"\r{Fore.LIGHTYELLOW_EX}{frames[i % len(frames)]} ⏳ {message}{Style.RESET_ALL}", end="")
-        i += 1
-        time.sleep(0.1)
-    print()
 
 # Tắt log của Selenium, ChromeDriver và urllib3
 logging.getLogger('selenium').setLevel(logging.CRITICAL)
@@ -102,20 +92,21 @@ def is_valid_tiktok_url(url, mode):
         return re.match(profile_url_pattern, url)
     return re.match(full_url_pattern, url) or re.match(short_url_pattern, url)
 
-def display_banner():
+def banner():
     """Hiển thị banner chuyên nghiệp."""
-    banner = f"""
+    b = f"""
     {Fore.LIGHTWHITE_EX}   ██████╗  █████╗  ██████╗ ██████╗ ███████╗     {Fore.LIGHTMAGENTA_EX}
     {Fore.LIGHTWHITE_EX}   ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗╚══███╔╝     {Fore.LIGHTMAGENTA_EX}
     {Fore.LIGHTWHITE_EX}   ██████╔╝███████║██║   ██║██║  ██║  ███╔╝      {Fore.LIGHTMAGENTA_EX}
     {Fore.LIGHTWHITE_EX}   ██╔══██╗██╔══██║██║   ██║██║  ██║ ███╔╝       {Fore.LIGHTMAGENTA_EX}
     {Fore.LIGHTWHITE_EX}   ██████╔╝██║  ██║╚██████╔╝██████╔╝███████╗     {Fore.LIGHTMAGENTA_EX}
     {Fore.LIGHTWHITE_EX}   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝     {Fore.LIGHTMAGENTA_EX}
-                                                       
-    {Fore.LIGHTCYAN_EX}       TIKTOK BOT - TĂNG TƯƠNG TÁC TỰ ĐỘNG       {Fore.LIGHTMAGENTA_EX}
-    {Fore.LIGHTWHITE_EX}       Phiên bản: 1.0.0 | Phát triển: BaoDz       {Fore.LIGHTMAGENTA_EX}
+
+    {Fore.LIGHTCYAN_EX}   TooL Tích Hợp  - TĂNG TƯƠNG TÁC TỰ ĐỘNG       {Fore.LIGHTMAGENTA_EX}
+    {Fore.LIGHTWHITE_EX}   Phiên bản: 1.0.0 | Phát triển: B05 - TooL    {Fore.LIGHTMAGENTA_EX}
+    {Fore.YELLOW}       ⏰ Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
     """
-    print(banner)
+    print(b)
 
 def display_menu(available_modes, mode_status):
     """Hiển thị menu mới đẹp hơn, xóa màn hình trước khi hiển thị."""
@@ -467,7 +458,7 @@ class Bot:
 
 def main():
     clear_screen()
-    display_banner()
+    banner()
     loading_animation("Đang khởi động hệ thống")
     bot = Bot()
     result = bot.setup_bot()
