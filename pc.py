@@ -101,8 +101,8 @@ def display_banner():
     {Fore.LIGHTWHITE_EX}   ██████╔╝██║  ██║╚██████╔╝██████╔╝███████╗     {Fore.LIGHTMAGENTA_EX}
     {Fore.LIGHTWHITE_EX}   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝     {Fore.LIGHTMAGENTA_EX}
                                                        
-    {Fore.LIGHTCYAN_EX}       TIKTOK BOT - TĂNG TƯƠNG TÁC TỰ ĐỘNG       {Fore.LIGHTMAGENTA_EX}
-    {Fore.LIGHTWHITE_EX}       Phiên bản: 1.0.0 | Phát triển: BaoDz       {Fore.LIGHTMAGENTA_EX}
+    {Fore.LIGHTCYAN_EX}   TooL Tích Hợp  - TĂNG TƯƠNG TÁC TỰ ĐỘNG       {Fore.LIGHTMAGENTA_EX}
+    {Fore.LIGHTWHITE_EX}   Phiên bản: 1.0.0 | Phát triển: B05 -TooL       {Fore.LIGHTMAGENTA_EX}
     """
     print(banner)
 
