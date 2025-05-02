@@ -7,11 +7,11 @@ from colorama import Fore, init
 
 init(autoreset=True)
 
-# Clear screen
-os.system('cls' if os.name == 'nt' else 'clear')
-
 # Kiểm tra nếu đang chạy trên Termux
 IS_TERMUX = 'TERMUX_VERSION' in os.environ
+
+# Clear screen
+os.system('cls' if os.name == 'nt' else 'clear')
 
 # ============= PHẦN GIAO DIỆN =============
 
@@ -32,14 +32,16 @@ def banner():
     print(b)
 
 def print_success(message, count):
-    # Xóa dòng hiện tại trước khi in
+    """In thông báo thành công mà không thêm dòng thừa."""
+    # Xóa dòng hiện tại
     sys.stdout.write("\r" + " " * 70 + "\r")
     sys.stdout.flush()
-    # In thông báo thành công
+    # In thông báo thành công, chỉ thêm một dòng mới
     sys.stdout.write(f"{Fore.GREEN}✔ {message} (Lần {count})\n")
     sys.stdout.flush()
 
 def countdown_with_spinner(seconds):
+    """Hiển thị đếm ngược với spinner và dọn dẹp sạch sẽ."""
     spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
     end_time = time.time() + seconds
     try:
@@ -49,6 +51,8 @@ def countdown_with_spinner(seconds):
             percentage = 100 - (remaining / seconds) * 100
             # Xóa dòng hiện tại
             sys.stdout.write("\r" + " " * 70 + "\r")
+            sys.stdout.flush()
+            # In spinner và đếm ngược
             sys.stdout.write(
                 f"{Fore.YELLOW}{spinner[int(time.time() * 2) % len(spinner)]} Thời gian chờ: {mins:02d}:{secs:02d} | Hoàn thành: {percentage:.1f}%"
             )
@@ -58,6 +62,7 @@ def countdown_with_spinner(seconds):
         sys.stdout.write("\r" + " " * 70 + "\r")
         sys.stdout.flush()
     except KeyboardInterrupt:
+        # Dọn dẹp khi bị gián đoạn
         sys.stdout.write("\r" + " " * 70 + "\r")
         sys.stdout.flush()
         sys.exit(0)
