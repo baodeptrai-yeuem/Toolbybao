@@ -10,6 +10,9 @@ init(autoreset=True)
 # Clear screen
 os.system('cls' if os.name == 'nt' else 'clear')
 
+# Kiểm tra nếu đang chạy trên Termux
+IS_TERMUX = 'TERMUX_VERSION' in os.environ
+
 # ============= PHẦN GIAO DIỆN =============
 
 def banner():
@@ -24,12 +27,17 @@ def banner():
 
     {Fore.LIGHTCYAN_EX}   TooL Tích Hợp  - TĂNG TƯƠNG TÁC TỰ ĐỘNG       {Fore.LIGHTMAGENTA_EX}
     {Fore.LIGHTWHITE_EX}   Phiên bản: 1.0.0 | Phát triển: B05 - TooL    {Fore.LIGHTMAGENTA_EX}
+    {Fore.YELLOW}       ⏰ Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
     """
     print(b)
-    print(f"{Fore.YELLOW}⏰ Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
 
 def print_success(message, count):
-    print(f"{Fore.GREEN}✔ {message} (Lần {count})")
+    # Xóa dòng hiện tại trước khi in
+    sys.stdout.write("\r" + " " * 70 + "\r")
+    sys.stdout.flush()
+    # In thông báo thành công
+    sys.stdout.write(f"{Fore.GREEN}✔ {message} (Lần {count})\n")
+    sys.stdout.flush()
 
 def countdown_with_spinner(seconds):
     spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
@@ -39,11 +47,14 @@ def countdown_with_spinner(seconds):
             remaining = int(end_time - time.time())
             mins, secs = divmod(remaining, 60)
             percentage = 100 - (remaining / seconds) * 100
+            # Xóa dòng hiện tại
+            sys.stdout.write("\r" + " " * 70 + "\r")
             sys.stdout.write(
-                f"{Fore.YELLOW}{spinner[int(time.time() * 2) % len(spinner)]} Thời gian chờ: {mins:02d}:{secs:02d} | Hoàn thành: {percentage:.1f}%\r"
+                f"{Fore.YELLOW}{spinner[int(time.time() * 2) % len(spinner)]} Thời gian chờ: {mins:02d}:{secs:02d} | Hoàn thành: {percentage:.1f}%"
             )
             sys.stdout.flush()
             time.sleep(0.1)
+        # Xóa dòng cuối cùng sau khi đếm ngược xong
         sys.stdout.write("\r" + " " * 70 + "\r")
         sys.stdout.flush()
     except KeyboardInterrupt:
